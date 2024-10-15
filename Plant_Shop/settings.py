@@ -37,7 +37,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'home_module'
+    'django_render_partial',
+    'home_module',
+    'account_module',
 ]
 
 MIDDLEWARE = [
@@ -55,7 +57,7 @@ ROOT_URLCONF = 'Plant_Shop.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -70,9 +72,13 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'Plant_Shop.wsgi.application'
 
+AUTH_USER_MODEL = 'account_module.User'
 
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
+
+MEDIA_ROOT = BASE_DIR / 'uploads'
+MEDIA_URL = '/medias/'
 
 DATABASES = {
     'default': {
