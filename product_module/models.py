@@ -4,8 +4,8 @@ from account_module.models import User
 # Create your models here.
 
 class ProductCategory(models.Model):
-    title = models.CharField(max_length=69, db_index=True, verbose_name='Title Category')
-    url_title = models.CharField(max_length=100, db_index=True, verbose_name='URL Title Category')
+    title = models.CharField(max_length=80, db_index=True, verbose_name='Title Category')
+    url_title = models.CharField(max_length=200, db_index=True, verbose_name='URL Title Category')
     is_active = models.BooleanField(verbose_name='Active Category')
     is_delete = models.BooleanField(verbose_name='Delete category')
 
@@ -18,13 +18,13 @@ class ProductCategory(models.Model):
     
 
 class Product(models.Model):
-    title = models.CharField(max_length=69, db_index=True, verbose_name='Product')
+    title = models.CharField(max_length=80, db_index=True, verbose_name='Product')
     category = models.ManyToManyField(ProductCategory, related_name='product_category', verbose_name='Product Categories')
     image = models.ImageField(upload_to='images/products', null=True, blank=True, verbose_name='Product Photo')
     price = models.IntegerField(verbose_name='Price')
-    short_description = models.CharField(max_length=369, null=True ,db_index=True, verbose_name='Short Description')
+    short_description = models.CharField(max_length=350, null=True ,db_index=True, verbose_name='Short Description')
     description = models.TextField(db_index=True, verbose_name='Description')
-    slug = models.SlugField(max_length=100, default='', null=False, blank=True, unique=True, db_index=True, verbose_name='URL Title')
+    slug = models.SlugField(max_length=200, default='', null=False, blank=True, unique=True, db_index=True, verbose_name='URL Title')
     is_active = models.BooleanField(verbose_name='Active Product')
     is_delete = models.BooleanField(verbose_name='Delete Product')
 
