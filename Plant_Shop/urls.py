@@ -18,6 +18,8 @@ from django.contrib import admin
 from django.urls import path, include
 
 urlpatterns = [
+    path('chat/', include('online_chat_module.urls')),
     path('admin/', admin.site.urls),
     path('', include('home_module.urls')),
+    
 ]
