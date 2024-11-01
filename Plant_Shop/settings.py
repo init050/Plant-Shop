@@ -31,6 +31,7 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    'daphne',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -44,7 +45,8 @@ INSTALLED_APPS = [
     'contact_module',
     'article_module',
     'site_module',
-    'online_chat_module'
+    'online_chat_module',
+    
 ]
 
 MIDDLEWARE = [
@@ -133,3 +135,8 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+# mysite/settings.py
+# Daphne
+ASGI_APPLICATION = "Plant_Shop.asgi.application"
