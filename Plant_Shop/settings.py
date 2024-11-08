@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'article_module',
     'site_module',
     'online_chat_module',
+    'channels',
     
 ]
 
