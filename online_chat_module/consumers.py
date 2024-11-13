@@ -9,9 +9,9 @@ class ChatConsumer(WebsocketConsumer):
     def disconnect(self, close_code):
         pass
     def receive(self, text_data):
-        text_data_dict = json.load(text_data)
+        text_data_dict = json.loads(text_data)
         message = text_data_dict['message']
 
-        self.send(text_data=json.dump({
+        self.send(text_data=json.dumps({
             'message':message,
         }))
