@@ -1,0 +1,16 @@
+{% load render_partial %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{% endblock title %}</title>
+    {% include 'shared/css_ref.html' %}
+</head>
+<body>
+    {% comment %} {%render_partial header%} {% endcomment %}
+    {% block content %}{% endblock content %}
+    {% comment %} {%render_partial footer%} {% endcomment %}
+    {% include 'shared/js_ref.html' %}
+</body>
+</html>
