@@ -1,5 +1,4 @@
 import json
-
 from asgiref.sync import async_to_sync
 from channels.generic.websocket import WebsocketConsumer 
 from .serializers import MessaageSerializers
@@ -13,7 +12,7 @@ class ChatConsumer(WebsocketConsumer):
         print('as')
 
 
-    def fetch_message(self):
+    def fetch_message(self, data):
         qs = Message.last_message(self)
         message_json = self.message_serializers(qs)
         content = {
@@ -52,10 +51,12 @@ class ChatConsumer(WebsocketConsumer):
     
     def receive(self, text_data):
         text_data_json = json.loads(text_data)
-        message = text_data_json["message"]
+        message = text_data_json.get('message', None)
         command = text_data_json['command']
-        self.commands[command](self)
+        self.commands[command](self, message)
 
+
+    def send_to_chat_message(self, message):
         async_to_sync(self.channel_layer.group_send)(
             self.room_group_name, {"type": "chat.message", "message": message}
         )
@@ -63,4 +64,5 @@ class ChatConsumer(WebsocketConsumer):
 
     def chat_message(self, event):
         message = event["message"]
+        print(event)
         self.send(text_data=json.dumps({"message": message}))

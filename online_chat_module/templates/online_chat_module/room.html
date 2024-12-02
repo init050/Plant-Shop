@@ -23,9 +23,20 @@
             + '/'
         );
 
+        chatSocket.onopen = function(e) {
+            chatSocket.send(JSON.stringify({
+                'command':'fetch_message'
+            }));
+
+        }
+
         chatSocket.onmessage = function(e) {
             const data = JSON.parse(e.data);
-            document.querySelector('#chat-log').value += (data.message + '\n');
+
+            for(let i=data['message'].length-1; i>=0;i--){
+                document.querySelector('#chat-log').value += (data['message'][i]['content'] + '\n');
+            }
+            
         };
  
         chatSocket.onclose = function(e) {
@@ -44,7 +55,7 @@
             const message = messageInputDom.value;
             chatSocket.send(JSON.stringify({
                 'message': message,
-                'command':'fetch_message'
+                'command':'new_message'
             }));
             messageInputDom.value = '';
         };
