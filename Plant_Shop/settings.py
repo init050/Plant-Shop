@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'site_module',
     'online_chat_module',
     'channels',
+    'rest_framework'
     
 ]
 
