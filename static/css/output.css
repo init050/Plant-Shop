@@ -554,10 +554,28 @@ video {
   display: none;
 }
 
-.static {
-  position: static;
-}
-
 .block {
   display: block;
+}
+
+.aspect-square {
+  aspect-ratio: 1 / 1;
+}
+
+.bg-sky-50 {
+  --tw-bg-opacity: 1;
+  background-color: rgb(240 249 255 / var(--tw-bg-opacity, 1));
+}
+
+.text-2xl {
+  font-size: 1.5rem;
+  line-height: 2rem;
+}
+
+.font-bold {
+  font-weight: 700;
+}
+
+.underline {
+  text-decoration-line: underline;
 }
