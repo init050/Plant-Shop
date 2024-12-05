@@ -9,49 +9,28 @@ from django.contrib.auth import get_user_model
 
 
 
-user = get_user_model()
+
 
 class ChatConsumer(WebsocketConsumer):
 
 
     def new_message(self, data):
-        message = data['message']
-        author = data['username']
-        user_model = user.objects.filter(username=author).first()
-        message_model=Message.objects.create(author=user_model, content =message)
-        result = self.message_serializers(message_model)
-        result = eval(result)['content']
-        self.send_to_chat_message(result)    
+        pass
 
 
 
     def fetch_message(self, data):
-        qs = Message.last_message(self)
-        message_json = self.message_serializers(qs)
-        content = {
-            'message':eval(message_json),
-            'command':'fetch_message'
-        }
-        self.chat_message(content)
+        pass
 
 
 
     def message_serializers(self, qs):
-        serialized = MessaageSerializers(qs, many=(lambda qs : True if (qs.__class__.__name__ == 'QuerySet') else False)(qs))
-        content = JSONRenderer().render(serialized.data)
-        return content
+        pass
 
 
 
     def connect(self):
-        self.room_name = self.scope["url_route"]["kwargs"]["room_name"]
-        self.room_group_name = f"chat_{self.room_name}"
-
-        async_to_sync(self.channel_layer.group_add)(
-            self.room_group_name, self.channel_name
-        )
-        self.accept()
-
+        pass
 
 
     
@@ -63,31 +42,17 @@ class ChatConsumer(WebsocketConsumer):
 
 
     def disconnect(self, close_code):
-        async_to_sync(self.channel_layer.group_discard)(
-            self.room_group_name, self.channel_name
-        )
-
+        pass
 
     
     def receive(self, text_data):
-        text_data_json = json.loads(text_data)
-        command = text_data_json['command']
-        self.commands[command](self, text_data_json)
-
+        pass
 
 
     def send_to_chat_message(self, message):
-        async_to_sync(self.channel_layer.group_send)(
-            self.room_group_name, 
-            {
-                "type": "chat.message",
-                "message": message,
-                'command': 'new_message'
-
-            }
-        )
+        pass
 
 
 
     def chat_message(self, event):
-        self.send(text_data=json.dumps(event))
+        pass
