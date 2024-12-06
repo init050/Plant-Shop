@@ -30,8 +30,9 @@ class ChatConsumer(WebsocketConsumer):
 
 
     def connect(self):
-        pass
-
+        self.room_name = self.scope['url_route']['kwargs']['room_name']
+        self.room_group_name = f'chat/{self.room_name}'
+        async_to_sync(self)
 
     
     commands = {
