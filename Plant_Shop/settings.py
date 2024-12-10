@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'contact_module',
     'article_module',
     'site_module',
+  
 ]
 
 MIDDLEWARE = [
@@ -90,6 +91,8 @@ DATABASES = {
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
+
+
 
 
 # Password validation
