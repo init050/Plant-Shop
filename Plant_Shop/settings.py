@@ -44,6 +44,8 @@ INSTALLED_APPS = [
     'contact_module',
     'article_module',
     'site_module',
+    'order_module'
+   
 ]
 
 MIDDLEWARE = [

@@ -23,7 +23,7 @@ class Articles(models.Model):
     slug = models.SlugField(max_length=200, blank=True, db_index=True, unique=True, verbose_name='URL In Title')
     is_active = models.BooleanField(default=True, verbose_name='Active')
     categories = models.ManyToManyField(ArticleCategory, verbose_name='Categories')
-    ceated_date = models.DateTimeField(auto_now_add=True, editable=False, verbose_name='Date and Time')
+    ceated_date = models.DateTimeField(auto_now_add=True, editable=False, verbose_name='Date And Time')
 
     class Meta:
         verbose_name = 'Article'
