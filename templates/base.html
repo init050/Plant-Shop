@@ -1,5 +1,7 @@
-<!DOCTYPE html>
+{% load render_partial %}
 <html>
+
+
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -7,7 +9,12 @@
     {% load static %}
     <link href="{% static 'css/output.css' %}" rel="stylesheet" />
   </head>
+
+
   <body> 
+    
+    {%render_partial 'home_module.views.site_header_component' %}
     {% block content %}{% endblock %}
+
   </body>
 </html>

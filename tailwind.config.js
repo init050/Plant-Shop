@@ -6,7 +6,11 @@ module.exports = {
     "./static/css/src/**/*.{html,js,css}"
   ],
   theme: {
-    extend: {},
+    extend: {
+      spacing: {
+        '10p':'10%',
+      },
+    },
   },
   plugins: [],
 }
