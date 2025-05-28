@@ -47,8 +47,16 @@ INSTALLED_APPS = [
     'contact_module',
     'article_module',
     'site_module',
-  
+    'crispy_forms',
+    'crispy_tailwind',
+    'phonenumber_field',
+    'mptt',
 ]
+
+
+CRISPY_ALLOWED_TEMPLATE_PACKS = "tailwind"
+CRISPY_TEMPLATE_PACK = "tailwind"
+
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',

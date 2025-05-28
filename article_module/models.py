@@ -1,41 +1,61 @@
 from django.db import models
+from uuid import uuid4
+from django.utils import timezone
+from mptt.models import MPTTModel, TreeForeignKey
 
-# Create your models here.
 
-class ArticleCategory(models.Model):
-    title = models.CharField(max_length=100, verbose_name='Category Title')
-    parent = models.ForeignKey('self', null=True, blank=True, related_name='Children', on_delete=models.SET_NULL)
-    slug = models.SlugField(max_length=200, blank=True, db_index=True, unique=True, verbose_name='URL In Category Title')
 
-    class Meta:
-        verbose_name = 'Article Category'
-        verbose_name_plural = 'Article Categories'
+def upload_article_image(instance, filename):
+    ext = filename.split('.')[-1]
+    filename = f'{uuid4().hex}.{ext}'
+    return f'articles/{instance.slug}/{filename}'
 
-    def __str__(self) -> str:
-        return self.title
-                
-    
-class Articles(models.Model):
-    title = models.CharField(max_length=100, verbose_name='Title')
-    short_description = models.CharField(max_length=350, verbose_name='Short Description')
-    description = models.TextField(verbose_name='Description')
-    image = models.ImageField(upload_to='images/articles', verbose_name='Image Article')
-    slug = models.SlugField(max_length=200, blank=True, db_index=True, unique=True, verbose_name='URL In Title')
-    is_active = models.BooleanField(default=True, verbose_name='Active')
-    categories = models.ManyToManyField(ArticleCategory, verbose_name='Categories')
-    ceated_date = models.DateTimeField(auto_now_add=True, editable=False, verbose_name='Date and Time')
+
+class TimestampedModel(models.Model):
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+    updated_at =models.DateTimeField(auto_now_add=True, db_index=True)
 
     class Meta:
-        verbose_name = 'Article'
-        verbose_name_plural = 'Articles'
+        abstract = True
 
-    def __str__(self) -> str:
-        return self.title
+
+class SoftDeleteManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().filter(is_deleted=False)
     
+    def with_deleted(self):
+        return super().get_queryset()
+    
+    def only_deleted(self):
+        return super().get_queryset().filter(is_deleted=True)
 
 
-#NOTE:ARTICLES COMMENT
+class SoftDeleteModel(models.Model):
+    is_deleted = models.BooleanField(default=False, db_index=True)
+    deleted_at = models.DateTimeField(null=True, blank=True)
+
+    objects = SoftDeleteManager()
+    all_objects = models.Manager()
+
+    class Meta:
+        abstract = True
+
+
+    def delete(self, using=None, keep_parents=False):
+        self.is_deleted = True
+        self.deleted_at = timezone.now()
+        self.save(using=using)
+
+
+    def hard_delete(self):
+        super().delete()
 
     
+    def restore(self):
+        self.is_deleted = False
+        self.deleted_at = None
+        self.save()
 
 
+class Category(MPTTModel, TimestampedModel):
+    pass

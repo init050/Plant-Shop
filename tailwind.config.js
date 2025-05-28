@@ -2,6 +2,7 @@
 module.exports = {
   content: [
     "./home_module/templates/**/*.html",
+    "./account_module/templates/**/*.html",
     "./templates/**/*.html",
     "./static/css/src/**/*.{html,js,css}"
   ],
