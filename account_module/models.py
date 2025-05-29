@@ -3,9 +3,6 @@ from django.contrib.auth.models import (
     AbstractBaseUser, PermissionsMixin, BaseUserManager
 )
 from django.utils.translation import gettext_lazy as _
-import uuid
-from django.utils import timezone 
-from datetime import timedelta
 
 # Create your models here.
 

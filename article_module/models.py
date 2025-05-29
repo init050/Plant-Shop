@@ -4,8 +4,10 @@ from django.utils import timezone
 from mptt.models import MPTTModel, TreeForeignKey
 from django.core.validators import MinLengthValidator, MaxLengthValidator
 from django.utils.translation import gettext_lazy as _
-
-
+from django.utils.text import slugify
+from django.urls import reverse
+from django.core.cache import cache
+from datetime import timedelta
 
 def upload_article_image(instance, filename):
     ext = filename.split('.')[-1]
@@ -98,3 +100,65 @@ class Category(MPTTModel, TimestampedModel):
         blank=True,
         help_text=_('Category image')
     )
+
+    class MPTTMeta:
+        order_insertion_by = ['name']
+
+    class Meta:
+        verbose_name_plural = 'Categories'
+        ordering = ['tree_id', 'lft']
+        indexes = [
+            models.indexes(fields=['slug', 'is_active']),
+            models.indexes(fields=['parents', 'is_active'])
+        ]
+
+    def __str__(self) -> str:
+        return self.name
+    
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.name)
+        super().save(*args, **kwargs)
+
+    def get_absolute_url(self):
+        return reverse('article_module:category_detail', kewargs={'slug':self.slug})
+    
+
+    @property
+    def article_count(self):
+        cache_key = f'category_article_count_{self.pk}'
+        count = cache.get(cache_key)
+
+        if count is None:
+            descendants = self.get_descendants(include=True)
+            count = Article.objects.filter(
+                categories__in=descendants,
+                status=Article.PUBLISHED
+
+            ).distinct().count()
+            cache.set(cache_key, count, timedelta(hours=1))
+        return count
+
+
+
+class ArticleQueryset(models.QuerySet):
+    def published(self):
+        return self.filter(
+            status=Article.PUBLISHED,
+            publish_date__lte=timezone.now()
+        )
+
+    def draft(self):
+        return self.filter(status=Article.DRAFT)
+
+
+    def author(self, author):
+        return self.filter(author=author)
+
+
+        
+
+class Article(TimestampedModel, SoftDeleteModel):
+    title = models.CharField(max_length=100)
+
+
