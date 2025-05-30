@@ -8,6 +8,7 @@ from django.utils.text import slugify
 from django.urls import reverse
 from django.core.cache import cache
 from datetime import timedelta
+from django.db.models import Q, Count
 
 def upload_article_image(instance, filename):
     ext = filename.split('.')[-1]
@@ -142,6 +143,8 @@ class Category(MPTTModel, TimestampedModel):
 
 
 class ArticleQueryset(models.QuerySet):
+
+
     def published(self):
         return self.filter(
             status=Article.PUBLISHED,
@@ -151,12 +154,47 @@ class ArticleQueryset(models.QuerySet):
     def draft(self):
         return self.filter(status=Article.DRAFT)
 
+    def featured(self):
+        return self.filter(is_featured=True)
 
     def author(self, author):
         return self.filter(author=author)
 
-
+    def by_category(self, category):
+        if isinstance(category, str):
+            return self.filter(categories__slug=category)
+        return self.filter(categories=category)
         
+
+    def search(self, query):
+        return self.filter(
+            Q(title__icontains=query) |
+            Q(content__icontains=query) |
+            Q(excerpt__icontains=query) |
+            Q(tag__name__icontains=query)
+        ).distinct()
+    
+
+
+class ArticleManager(SoftDeleteManager):
+    def get_queryset(self):
+        return ArticleQueryset(self.model, using=self.db).filter(is_deleted=False)
+    
+    def published(self):
+        return self.get_queryset().published()
+
+    def featured(self):
+        return self.get_queryset().featured()
+    
+    def popular(self, days=30):
+        since = timezone.now() - timezone.timedelta(days=days)
+        return self.get_queryset().published().filter(
+            views__created__at__gte=since
+        ).annotate(
+            recent_view=Count('views', filter=Q(views__created__at__gte=since))
+        ).order_by('-recent_views')
+
+
 
 class Article(TimestampedModel, SoftDeleteModel):
     title = models.CharField(max_length=100)
