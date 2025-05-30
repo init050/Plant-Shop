@@ -12,6 +12,7 @@ from django.db.models import Q, Count
 from ckeditor_uploader.fields import RichTextUploadingField
 from account_module.models import User
 from taggit.managers import TaggableManager
+from django.utils.html import strip_tags
 
 def upload_article_image(instance, filename):
     ext = filename.split('.')[-1]
@@ -357,5 +358,26 @@ class Article(TimestampedModel, SoftDeleteModel):
     def __str__(self):
         return self.title
     
-    def sava(self):
-        pass
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.title)
+
+        if not self.pk:
+            original_slug = self.slug
+            counter = 1
+            while Article.objects.filter(slug=self.slug).exists():
+                self.slug = f'{original_slug}-{counter}'
+                counter += 1
+
+        if not self.meta_title:
+            self.meta_title = self.title[:60]
+        if not self.meta_description:
+            self.meta_description = strip_tags(self.excerpt)[:160]
+
+
+        if self.content:
+            content_text = strip_tags(self.content)
+            self.word_count = len(content_text.split())
+            self.reading_time = max(1, self.word_count // 200)
+
+        super().save(*args, **kwargs)
