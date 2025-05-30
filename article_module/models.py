@@ -13,12 +13,18 @@ from ckeditor_uploader.fields import RichTextUploadingField
 from account_module.models import User
 from taggit.managers import TaggableManager
 from django.utils.html import strip_tags
+from pathlib import Path 
+from PIL import Image
 
 def upload_article_image(instance, filename):
     ext = filename.split('.')[-1]
     filename = f'{uuid4().hex}.{ext}'
     return f'articles/{instance.slug}/{filename}'
 
+def upload_article_thumbnail(instance, filename):
+    ext = filename.split('.')[-1]
+    filename = f'thumb_{uuid4().hex}.{ext}'
+    return f'article/{instance.slug}/thumbnails{filename}'
 
 class TimestampedModel(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
@@ -274,6 +280,7 @@ class Article(TimestampedModel, SoftDeleteModel):
         help_text=_('Featured articles appear prominently'),
         db_index=True
     )
+    
 
     is_premium = models.BooleanField(
         default=False,
@@ -301,6 +308,13 @@ class Article(TimestampedModel, SoftDeleteModel):
         max_length=200,
         blank=True,
         help_text=_('Alt text for featured image (SEO)')
+    )
+
+    thumbnail = models.ImageField(
+        upload_to=upload_article_thumbnail,
+        null=True,
+        blank=True,
+        help_text=_('Auto-generated thumbnail')
     )
 
 
@@ -358,9 +372,11 @@ class Article(TimestampedModel, SoftDeleteModel):
     def __str__(self):
         return self.title
     
+
     def save(self, *args, **kwargs):
         if not self.slug:
             self.slug = slugify(self.title)
+
 
         if not self.pk:
             original_slug = self.slug
@@ -368,6 +384,7 @@ class Article(TimestampedModel, SoftDeleteModel):
             while Article.objects.filter(slug=self.slug).exists():
                 self.slug = f'{original_slug}-{counter}'
                 counter += 1
+
 
         if not self.meta_title:
             self.meta_title = self.title[:60]
@@ -380,4 +397,24 @@ class Article(TimestampedModel, SoftDeleteModel):
             self.word_count = len(content_text.split())
             self.reading_time = max(1, self.word_count // 200)
 
+
         super().save(*args, **kwargs)
+
+        if self.featured_image and not self.thumbnail:
+            self.generate_thumbnail()
+
+    def get_absolute_url(self):
+        return reverse('article_module:detail', kwargs={'slug': self.slug})
+
+    def generate_thumbnail(self):
+        if not self.featured_image:
+            return
+        
+
+        try:
+            image = Image.open(self.featured_image.path)
+            image.thumbnail((300*200), Image.Resampling.LANCZOS)
+
+
+        except:
+            pass
