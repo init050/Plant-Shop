@@ -9,6 +9,9 @@ from django.urls import reverse
 from django.core.cache import cache
 from datetime import timedelta
 from django.db.models import Q, Count
+from ckeditor_uploader.fields import RichTextUploadingField
+from account_module.models import User
+from taggit.managers import TaggableManager
 
 def upload_article_image(instance, filename):
     ext = filename.split('.')[-1]
@@ -79,7 +82,7 @@ class Category(MPTTModel, TimestampedModel):
     description = models.TextField(
         max_length=500,
         blank=True,
-        help_text=_()
+        help_text=_('Category description for SEO')
     )
 
     parents = TreeForeignKey(
@@ -197,6 +200,162 @@ class ArticleManager(SoftDeleteManager):
 
 
 class Article(TimestampedModel, SoftDeleteModel):
-    title = models.CharField(max_length=100)
+
+    DRAFT = 'draft'
+    PUBLISHED = 'published'
+    ARCHIVED = 'archived'
+    PENDING = 'pending'
+    
+
+    STATUS_CHOICES = [
+        (DRAFT, 'Draft'),
+        (PUBLISHED, 'Published'),
+        (ARCHIVED, 'Archived'),
+        (PENDING, 'Pending Review'),
+    ]
 
 
+    title = models.CharField(
+        max_length=200,
+        validators=[MinLengthValidator(5)],
+        help_text=_('Article title (5-200 characters')
+    )
+
+    slug = models.SlugField(
+        max_length=250,
+        unique=True,
+        help_text=_('URL-friendly identifier')
+    )
+
+    excerpt = models.TextField(
+        max_length=300,
+        help_text=_('Brief description for previews and SEO')
+    )
+
+    content = RichTextUploadingField(
+        help_text=_('Main article content with rich text editor')
+    )
+
+
+    author = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='articles',
+        db_index=True
+    )
+    categories = models.ManyToManyField(
+        Category,
+        related_name='articles',
+        help_text="Select one or more categories"
+    )
+
+    tags = TaggableManager(
+        blank=True,
+        help_text=_('Comma-separated tags')
+    )
+
+
+    status = models.CharField(
+        max_length=25,
+        choices=STATUS_CHOICES,
+        default=DRAFT,
+        db_index=True
+    )
+
+    publish_date = models.DateTimeField(
+        default=timezone.now(),
+        db_index=True,
+        help_text=_('When to publish this article')
+    )
+    
+    is_featured = models.BooleanField(
+        default=False,
+        help_text=_('Featured articles appear prominently'),
+        db_index=True
+    )
+
+    is_premium = models.BooleanField(
+        default=False,
+        help_text=_('Premium content for subscribers only')
+    )
+
+    is_pinned = models.BooleanField(
+        default=False,
+        help_text=_('Pin article to top of category')
+    )
+
+    allow_comments = models.BooleanField(
+        default=True,
+        help_text=_('Allow users to comment on this article')
+    )
+
+    featured_image = models.ImageField(
+        upload_to=upload_article_image(),
+        blank=True,
+        null=True,
+        help_text=_('Main article image')
+    )
+
+    featured_image_alt = models.CharField(
+        max_length=200,
+        blank=True,
+        help_text=_('Alt text for featured image (SEO)')
+    )
+
+
+    meta_title = models.CharField(
+        max_length=60,
+        blank=True,
+        help_text=_('SEO title (leave blank to use article title)')
+    )
+    meta_description = models.CharField(
+        max_length=160,
+        blank=True,
+        help_text=_('SEO description (leave blank to use excerpt)')
+    )
+    canonical_url = models.URLField(
+        blank=True,
+        help_text=_('Canonical URL if content is republished')
+    )
+
+    
+    reading_time = models.PositiveIntegerField(
+        default=0,
+        help_text=_('Estimated reading time in minutes')
+    )
+
+    word_count = models.PositiveIntegerField(
+        default=0,
+        help_text=_('Article word count')
+    )
+
+
+
+    objects = ArticleManager()
+    all_objects = models.Manager()
+
+
+    class Meta:
+        ordering = ['-publish_date', '-created_at']
+        verbose_name = 'Article'
+        verbose_name_plural = 'Articles'
+        indexes = [
+            models.indexes(fields=['status', 'publish_date']),
+            models.indexes(fields=['author', 'status']),
+            models.indexes(fields=['is_featured', 'status']),
+            models.indexes(fields=['slug']),
+            models.indexes(fields=['publish_date'])
+        ]
+
+        permissions = [
+            ('can_publish_article', 'Can publish articles'),
+            ('can_feature_article', 'Can feature articles'),
+            ('can_edit_all_articles', 'Can edit all articles'),
+        ]
+
+    
+    def __str__(self):
+        return self.title
+    
+    def sava(self):
+        pass

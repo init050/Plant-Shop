@@ -51,6 +51,9 @@ INSTALLED_APPS = [
     'crispy_tailwind',
     'phonenumber_field',
     'mptt',
+    'ckeditor',
+    'ckeditor_uploader',
+    'taggit',
 ]
 
 
