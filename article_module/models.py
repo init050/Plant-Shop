@@ -15,6 +15,10 @@ from taggit.managers import TaggableManager
 from django.utils.html import strip_tags
 from pathlib import Path 
 from PIL import Image
+from django.conf import settings
+
+
+
 
 def upload_article_image(instance, filename):
     ext = filename.split('.')[-1]
@@ -403,18 +407,57 @@ class Article(TimestampedModel, SoftDeleteModel):
         if self.featured_image and not self.thumbnail:
             self.generate_thumbnail()
 
+
     def get_absolute_url(self):
         return reverse('article_module:detail', kwargs={'slug': self.slug})
+
 
     def generate_thumbnail(self):
         if not self.featured_image:
             return
-        
-
         try:
             image = Image.open(self.featured_image.path)
             image.thumbnail((300*200), Image.Resampling.LANCZOS)
 
+            base_path = Path(self.featured_image.path)
+            thumb_path = base_path.parent / f'thumb_{base_path.name}'
 
-        except:
-            pass
+            image.save(thumb_path, optimize=True, quality=85)
+            self.thumbnail.name = str(thumb_path.relative_to(settings.MEDIA_ROOT))
+            self.save(update_fields=['thumbnail'])
+
+        except Exception as e:
+            print(f'Error generating thumbnail: {e}')
+        
+            
+    @property
+    def is_published(self):
+        return (
+            self.status == self.PUBLISHED and
+            self.publish_date <= timezone.now()
+        )
+
+    @property
+    def view_count(self):
+        return self.views.count()
+    
+
+    @property
+    def comment_count(self):
+        return self.comments.count()
+    
+    def get_related_articles(self, limit=5):
+
+        cache_key = f'related_articles_{self.pk}_{limit}'
+
+        if not(related := cache.get(cache_key)):
+            my_categories = self.categories.values_list('id', flat=True)
+            my_tags = self.tags.values_list('id', flat=True)
+
+            related = list(Article.objects.published()
+                           
+                           
+                           
+                           
+            )
+
