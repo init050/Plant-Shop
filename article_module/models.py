@@ -16,6 +16,8 @@ from django.utils.html import strip_tags
 from pathlib import Path 
 from PIL import Image
 from django.conf import settings
+from django.contrib.sitemaps import Sitemap
+
 
 
 
@@ -446,6 +448,7 @@ class Article(TimestampedModel, SoftDeleteModel):
     def comment_count(self):
         return self.comments.count()
     
+    
     def get_related_articles(self, limit=5):
 
         cache_key = f'related_articles_{self.pk}_{limit}'
@@ -455,9 +458,181 @@ class Article(TimestampedModel, SoftDeleteModel):
             my_tags = self.tags.values_list('id', flat=True)
 
             related = list(Article.objects.published()
-                           
-                           
-                           
-                           
-            )
+                           .exclude(pk=self.pk)
+                           .filter(Q(categories__in=my_categories) | Q(tag__in=my_tags))
+                           .distinct()
+                           .annonate(relevance=Count('categories', filter=Q(categories__in=my_categories))+
+                                            Count('tags', filter=Q(tags__in=my_tags)))
+                           .order_by('-relevance', '-publish_date')
+                           .select_related() 
+                           [:limit])
+            cache.set(cache_key, related, 1800)
 
+        return related
+
+
+    def can_be_edited_by(self, user):
+        if user.is_superuser:
+            return True
+        if user.has_perm('article.can_edit_all_articles'):
+            return True
+        return self.author == user
+    
+
+    def can_be_published_by(self, user):
+        if user.is_superuser:
+            return True
+        if user.has_perm('article.can_publish_article'):
+            return True
+        return False
+    
+
+class Comment(MPTTModel, TimestampedModel, SoftDeleteModel):
+
+
+    article = models.ForeignKey(
+        Article,
+        on_delete=models.CASCADE,
+        related_name='comments',
+        db_index=True
+    )
+    author = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='comments'
+    )
+    parent = TreeForeignKey(
+        'self',
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name='replies',
+        help_text=_('Reply to another comment')
+    )
+    content = models.TextField(
+        validators=[
+            MinLengthValidator(3),
+            MaxLengthValidator(1000)
+        ],
+        help_text=_('Comment content (3-1000 characters)')
+    )
+
+
+    is_aproved = models.BooleanField(
+        default=False,
+        help_text=_('Approved comments are visible to public'),
+        db_index=True
+    )
+
+    is_flagged = models.BooleanField(
+        default=False,
+        help_text=_('Flagged comments need review')
+    )
+    moderator = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='moderated_comments'
+    )
+    moderation_reason = models.CharField(
+        max_length=200,
+        blank=True,
+        help_text=_('Reason for moderation action')
+    )
+
+    ip_address = models.GenericIPAddressField(blank=True, null=True)
+    user_agent = models.TextField(blank=True)
+
+
+    objects = SoftDeleteManager()
+
+    class MPTTMeta:
+        order_insertion_by = ['-created_at']
+
+
+    class Meta:
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['article', 'is_approved']),
+            models.Index(fields=['author', 'is_approved']),
+            models.Index(fields=['parent', 'is_approved']),
+            models.Index(fields=['-created_at']),
+        ]
+        permissions = [
+            ('can_moderate_comments', 'Can moderate comments'),
+            ('can_approve_comments', 'Can approve comments'),
+        ]
+
+    def __str__(self) -> str:
+        return f'Comment on {self.author.username} on {self.article.title}'
+    
+    def get_absolute_url(self):
+        return f'{self.article.get_absolute_url()}#comment-{self.pk}'
+    
+    @property
+    def reply_count(self):
+        return self.get_descendant_count()
+    
+
+class ArticleView(TimestampedModel):
+    """Track article views for analytics"""
+    
+    article = models.ForeignKey(
+        Article,
+        on_delete=models.CASCADE,
+        related_name='views',
+        db_index=True
+    )
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name='article_views'
+    )
+    ip_address = models.GenericIPAddressField()
+    session_key = models.CharField(max_length=40, blank=True)
+    user_agent = models.TextField(blank=True)
+    referrer = models.URLField(blank=True)
+    
+    class Meta:
+        unique_together = ['article', 'ip_address', 'session_key']
+        indexes = [
+            models.Index(fields=['article', 'created_at']),
+            models.Index(fields=['ip_address']),
+        ]
+    
+    def __str__(self):
+        return f'View of {self.article.title} from {self.ip_address}'
+
+
+class ArticleRating(TimestampedModel):
+    
+    RATING_CHOICES = [(i, str(i)) for i in range(1, 6)]
+
+    article = models.ForeignKey(
+        Article,
+        db_index=True,
+        on_delete=models.CASCADE,
+        related_name='rating'
+    )
+
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='article_rating'
+    )
+
+    score = models.PositiveIntegerField(choices=RATING_CHOICES)
+    review = models.TextField(max_length=200, blank=True)
+
+
+    class Meta:
+        unique_together = ['article', 'user']
+        indexes = [
+            models.indexes(fields=['article', 'score'])
+        ]
+
+    def __str__(self):
+        return f"{self.user.username} rated {self.article.title}: {self.score}/5"
