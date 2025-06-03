@@ -45,7 +45,7 @@ INSTALLED_APPS = [
     'account_module',
     'product_module',
     'contact_module',
-    'article_module',
+    'article_module.apps.ArticleModuleConfig',
     'site_module',
     'crispy_forms',
     'crispy_tailwind',

@@ -16,7 +16,7 @@ from django.utils.html import strip_tags
 from pathlib import Path 
 from PIL import Image
 from django.conf import settings
-from django.contrib.sitemaps import Sitemap
+from django.contrib.sitemaps import _SupportsCount, _SupportsLen, _SupportsOrdered, Sitemap
 
 
 
@@ -636,3 +636,18 @@ class ArticleRating(TimestampedModel):
 
     def __str__(self):
         return f"{self.user.username} rated {self.article.title}: {self.score}/5"
+    
+
+
+class ArticleSitemap(Sitemap):
+    changedreq = 'weekly'
+    priority = 0.8
+
+    def items(self):
+        return Article.objects.published()
+    
+    def lastmod(self, obj):
+        return obj.updated_at
+    
+    def location(self, obj):
+        return obj.get_absolute_url()
