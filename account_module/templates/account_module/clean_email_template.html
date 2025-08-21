@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Verification</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .header {
+            background-color: #27AE60;
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-radius: 8px 8px 0 0;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+        .content {
+            padding: 30px;
+        }
+        .content h2 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .content p {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+        .verification-button {
+            display: inline-block;
+            background-color: #27AE60;
+            color: white;
+            padding: 15px 30px;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+        .verification-button:hover {
+            background-color: #219A52;
+        }
+        .email-info {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            border-left: 4px solid #27AE60;
+        }
+        .footer {
+            background-color: #f8f9fa;
+            padding: 20px;
+            text-align: center;
+            color: #666;
+            font-size: 14px;
+            border-radius: 0 0 8px 8px;
+        }
+        .alternative-link {
+            word-break: break-all;
+            color: #27AE60;
+            font-size: 12px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>{{ site_name }}</h1>
+        </div>
+        
+        <div class="content">
+            {% if is_email_change %}
+                <h2>Verify New Email Address</h2>
+                <p>Hello {{ user.username|default:user.email }}!</p>
+                <p>You have requested to change your email address. To complete this process and verify your new email, please click the button below:</p>
+                
+                <div class="email-info">
+                    <strong>New Email:</strong> {{ target_email }}
+                </div>
+            {% else %}
+                <h2>Email Verification</h2>
+                <p>Hello {{ user.username|default:user.email }}!</p>
+                <p>Welcome! To complete your registration and activate your account, please verify your email address:</p>
+            {% endif %}
+            
+            <div style="text-align: center;">
+                <a href="{{ verification_url }}" class="verification-button">
+                    Verify Email
+                </a>
+            </div>
+            
+            <p><strong>Important Notes:</strong></p>
+            <ul>
+                <li>This link is valid for 24 hours</li>
+                <li>Without verification, your account will remain inactive</li>
+                {% if is_email_change %}
+                <li>Until verified, your old email will remain active</li>
+                {% endif %}
+            </ul>
+            
+            <p>If the button above doesn't work, you can copy and paste this link into your browser:</p>
+            <div class="alternative-link">
+                {{ verification_url }}
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>If you didn't make this request, please ignore this email.</p>
+            <p>&copy; {{ site_name }} - All rights reserved</p>
+        </div>
+    </div>
+</body>
+</html>

@@ -19,6 +19,7 @@ class UserManager(BaseUserManager):
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
         extra_fields.setdefault('is_active', True)
+        extra_fields.setdefault('is_email_verified', True)
 
         if extra_fields.get('is_staff') is not True:
             raise ValueError(_('Superuser must have is_staff=True.'))
@@ -33,7 +34,11 @@ class User(AbstractBaseUser, PermissionsMixin):
     avatar = models.ImageField(_('Avatar'), upload_to='images/profiles/avatars/', blank=True, null=True)
     phone_number = models.CharField(_('Phone number'), max_length=15, blank=False, null=False)
 
+    email_active_code = models.CharField(_('Email verification code'), max_length=200, blank=True)
     is_email_verified = models.BooleanField(_('Email verified'), default=False)
+    
+    pending_email = models.EmailField(_('Pending email'), blank=True, null=True)
+
     last_login_ip = models.GenericIPAddressField(_('Last login IP'), blank=True, null=True)    
     password_reset_token = models.UUIDField(_('Password reset token'), blank=True, null=True)
     password_reset_token_created_at = models.DateTimeField(_('Password reset token created at'), blank=True, null=True)
@@ -66,5 +71,13 @@ class User(AbstractBaseUser, PermissionsMixin):
         # to ensure the user's account is marked as active and verified consistently.
         self.is_active = True
         self.is_email_verified = True
-        self.save(update_fields=['is_active', 'is_email_verified'])
+        self.email_active_code = ''
+        
+        if self.pending_email:
+            self.email = self.pending_email
+            self.pending_email = None
+            
+        self.save(update_fields=['is_active', 'is_email_verified', 'email_active_code', 'email', 'pending_email'])
 
+    def can_login(self):
+        return self.is_active and self.is_email_verified

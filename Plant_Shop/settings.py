@@ -155,3 +155,45 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+# Site settings  
+SITE_NAME = 'Plant Shop'
+SITE_URL = 'http://localhost:8000'
+DEFAULT_FROM_EMAIL = 'noreply@plantshop.local'
+
+# Site settings  
+SITE_NAME = 'Plant Shop'
+if DEBUG:
+    SITE_URL = 'http://localhost:8000'
+else:
+    SITE_URL = 'https://your-domain.com'
+
+LOGIN_URL = '/user/login/'
+LOGIN_REDIRECT_URL = '/'  
+LOGOUT_REDIRECT_URL = '/user/login/'  
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'file': {
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'filename': BASE_DIR / 'logs' / 'email_verification.log',
+        },
+        'console': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'loggers': {
+        'account_module': {
+            'handlers': ['file', 'console'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+    },
+}

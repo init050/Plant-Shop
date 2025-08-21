@@ -24,7 +24,8 @@ from django.contrib.auth.views import (
 )
 from django.conf import settings
 from django.shortcuts import get_object_or_404
-
+from django.utils import timezone
+from datetime import timedelta
 
 logger = logging.getLogger(__name__)
 user = get_user_model()
@@ -44,13 +45,14 @@ class UserRegistrationView(generic.CreateView):
     model = User
     form_class = UserRegistrationForm
     template_name = 'account_module/register.html'
-    success_url = reverse_lazy('home_page')
+    success_url = reverse_lazy('account_module:email_verification')
 
     def form_valid(self, form):
         # We need to save the user first before we can send the verification email.
         # The `commit=False` allows us to get the user object without saving it to the database yet.
         user = form.save(commit=False)
         user.is_active = False # The user should not be active until they verify their email.
+        user.is_email_verified = False
         user.save()
 
         # We pass the request object to the service so it can build the absolute verification URL.
@@ -64,6 +66,8 @@ class UserRegistrationView(generic.CreateView):
                 self.request,
                 _('Registration successful, but we could not send the verification email. Please try again later.')
             )
+        
+        self.request.session['pending_verification_user_id'] = user.id
         return redirect(self.success_url)
     
     def form_invalid(self, form):
@@ -91,8 +95,13 @@ class CustomLoginView(LoginView):
 
         # It's important to check for email verification here to provide immediate feedback
         # to the user, rather than letting them access parts of the site they shouldn't.
-        if not user.is_email_verified:
-            messages.warning(self.request, _('Your email is not verified. Please check your inbox.'))
+        if not user.can_login():
+            messages.error(
+                self.request, 
+                _('Your email is not verified. Please check your inbox and verify your email first.')
+            )
+            self.request.session['pending_verification_user_id'] = user.id
+            return redirect('account_module:email_verification')
         
         login(self.request, user)
         
@@ -101,8 +110,12 @@ class CustomLoginView(LoginView):
         user.last_login_ip = get_client_ip(self.request)
         user.save(update_fields=['last_login_ip'])
 
+        messages.success(self.request, _('Welcome back!'))
         return super().form_valid(form)
 
+    def form_invalid(self, form):
+        messages.error(self.request, _('Invalid email or password.'))
+        return super().form_invalid(form)
 
 
 class UserProfileView(LoginRequiredMixin, BaseViewMixin, generic.UpdateView):
@@ -119,8 +132,31 @@ class UserProfileView(LoginRequiredMixin, BaseViewMixin, generic.UpdateView):
         # By letting the form handle the save, we keep the view cleaner.
         # The UserProfileForm is designed to only allow certain fields to be edited,
         # and the ModelForm's save() method respects this.
-        messages.success(self.request, _('Profile updated successfully.'))
-        return super().form_valid(form)    
+        old_email = self.request.user.email
+        new_email = form.cleaned_data.get('email')
+        
+        if old_email != new_email:
+            user = form.save(commit=False)
+            user.pending_email = new_email
+            user.email = old_email
+            user.is_email_verified = False
+            user.save()
+            
+            if EmailVerificationService.send_verification_email_for_change(self.request, user, new_email):
+                messages.success(
+                    self.request, 
+                    _('Verification email sent to your new email address. Please verify to complete the change.')
+                )
+            else:
+                messages.error(
+                    self.request,
+                    _('Could not send verification email. Please try again later.')
+                )
+        else:
+            form.save()
+            messages.success(self.request, _('Profile updated successfully.'))
+            
+        return redirect(self.success_url)    
 
 
 class PasswordChangeView(LoginRequiredMixin, FormView):
@@ -128,9 +164,6 @@ class PasswordChangeView(LoginRequiredMixin, FormView):
     template_name = 'account_module/change_password.html'
     success_url = reverse_lazy('home_page')
 
-    def get_object(self, queryset = None):
-        return self.request.user
-    
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
         kwargs['user'] = self.request.user 
@@ -141,7 +174,89 @@ class PasswordChangeView(LoginRequiredMixin, FormView):
         form.save()
         messages.success(self.request, _('Password changed successfully'))
         return super().form_valid(form)
+
+
+class EmailVerificationView(generic.TemplateView):
+    template_name = 'account_module/email_verification.html'
     
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        
+        user_id = self.request.session.get('pending_verification_user_id')
+        if user_id:
+            try:
+                user = User.objects.get(id=user_id)
+                context['user'] = user
+            except User.DoesNotExist:
+                context['user'] = None
+        
+        context['can_resend'] = self._can_resend_email(context.get('user'))
+        
+        return context
+    
+    def _can_resend_email(self, user):
+        if not user:
+            return False
+        
+        if user.is_email_verified:
+            return False
+            
+        last_attempt = self.request.session.get('last_verification_email_sent')
+        if last_attempt:
+            last_time = timezone.datetime.fromisoformat(last_attempt)
+            if timezone.now() - last_time < timedelta(minutes=2):
+                return False
+        
+        return True
+    
+    def post(self, request, *args, **kwargs):
+        user_id = request.session.get('pending_verification_user_id')
+        if not user_id:
+            messages.error(request, _('No pending verification found.'))
+            return redirect('account_module:login')
+        
+        try:
+            user = User.objects.get(id=user_id)
+        except User.DoesNotExist:
+            messages.error(request, _('User not found.'))
+            return redirect('account_module:login')
+        
+        if user.is_email_verified:
+            messages.info(request, _('Your email is already verified.'))
+            return redirect('account_module:login')
+        
+        if not self._can_resend_email(user):
+            messages.warning(request, _('Please wait before requesting another verification email.'))
+            return self.get(request, *args, **kwargs)
+        
+        target_email = user.pending_email if user.pending_email else user.email
+        if EmailVerificationService.send_verification_email(request, user, target_email):
+            request.session['last_verification_email_sent'] = timezone.now().isoformat()
+            messages.success(request, _('Verification email sent successfully.'))
+        else:
+            messages.error(request, _('Could not send verification email. Please try again later.'))
+        
+        return self.get(request, *args, **kwargs)
+
+
+class EmailVerificationConfirmView(generic.View):
+    # This view is now a simple handler for the verification link.
+    # It's lean because all the complex logic has been moved to the EmailVerificationService.
+    # This separation of concerns makes the code easier to read, test, and maintain.
+    def get(self, request, token):
+        success, message = EmailVerificationService.verify(token)
+        
+        if success:
+            messages.success(request, message)
+            if 'pending_verification_user_id' in request.session:
+                del request.session['pending_verification_user_id']
+            if 'last_verification_email_sent' in request.session:
+                del request.session['last_verification_email_sent']
+            return redirect('account_module:login')
+        else:
+            messages.error(request, message)
+            return redirect('account_module:email_verification')
+
 
 class CustomPasswordResetView(PasswordResetView):
     # This view initiates the password reset process. By inheriting from PasswordResetView,
@@ -185,16 +300,3 @@ class CustomPasswordResetConfirmView(PasswordResetConfirmView):
 class CustomPasswordResetCompleteView(PasswordResetCompleteView):
     # This is the final step, a page that confirms the password has been successfully changed.
     template_name = 'account_module/password_reset_complete.html'
-
-
-class EmailVerificationView(generic.View):
-    # This view is now a simple handler for the verification link.
-    # It's lean because all the complex logic has been moved to the EmailVerificationService.
-    # This separation of concerns makes the code easier to read, test, and maintain.
-    def get(self, request, token):
-        success, message = EmailVerificationService.verify(token)
-        if success:
-            messages.success(request, message)
-        else:
-            messages.error(request, message)
-        return redirect('account_module:login')
