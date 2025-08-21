@@ -9,24 +9,12 @@ logger = logging.getLogger(__name__)
 
 
 class EmailVerificationService:
-    """
-    Service class for handling email verification operations at a senior level.
-    Combines token generation, repository logic, and email sending.
-    """
 
     MAX_ATTEMPTS = 3
 
     @classmethod
     def send_verification_email(cls, user):
-        """
-        Generate a token, store it, and send it to user's email.
 
-        Args:
-            user: User instance
-
-        Returns:
-            bool: True if email was sent successfully, False otherwise
-        """
         try:
             token = TokenGenerator.generate()
             EmailVerificationRepository.store(user.id, token)
@@ -48,16 +36,7 @@ class EmailVerificationService:
 
     @classmethod
     def verify(cls, user, token):
-        """
-        Verify the token provided by the user.
 
-        Args:
-            user: User instance
-            token: The token string to be verified
-
-        Returns:
-            tuple: (bool success, str message)
-        """
         try:
             data = EmailVerificationRepository.get(user.id)
             if not data:

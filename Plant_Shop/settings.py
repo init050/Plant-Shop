@@ -54,6 +54,8 @@ INSTALLED_APPS = [
     'ckeditor',
     'ckeditor_uploader',
     'taggit',
+    'crispy_forms',
+    'crispy_tailwind',
 ]
 
 
