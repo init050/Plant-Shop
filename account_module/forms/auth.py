@@ -8,15 +8,18 @@ from .validators import StrongPasswordValidator
 
 
 class CustomAuthenticationForm(AuthenticationForm):
+    # Overriding the username field to change its label and placeholder.
+    # Since the User model uses 'email' as the USERNAME_FIELD,
+    # this form should reflect that for a clear user experience.
     username = forms.CharField(
-        label=_('Username or Email'),
-        widget=forms.TextInput(attrs={'placeholder': _('Username or Email')})
+        label=_('Email'),
+        widget=forms.TextInput(attrs={'autofocus': True, 'placeholder': _('Email')})
     )
     password = forms.CharField(
-        widget=forms.PasswordInput(attrs={'placeholder': _('Password')})
-        
+        label=_('Password'),
+        strip=False,
+        widget=forms.PasswordInput(attrs={'autocomplete': 'current-password', 'placeholder': _('Password')}),
     )
-
 
 
 class CustomPasswordChangeForm(PasswordChangeForm):

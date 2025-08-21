@@ -4,5 +4,5 @@ from . import models
 # Register your models here.
 
 
-admin.site.register(models.ArticleCategory)
-admin.site.register(models.Articles)
+# admin.site.register(models.ArticleCategory)
+# admin.site.register(models.Articles)

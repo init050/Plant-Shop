@@ -4,7 +4,6 @@ from django.contrib.auth.models import (
 )
 from django.utils.translation import gettext_lazy as _
 
-# Create your models here.
 
 class UserManager(BaseUserManager):
     def create_user(self, email, password=None, **extra_fields):
@@ -34,7 +33,6 @@ class User(AbstractBaseUser, PermissionsMixin):
     avatar = models.ImageField(_('Avatar'), upload_to='images/profiles/avatars/', blank=True, null=True)
     phone_number = models.CharField(_('Phone number'), max_length=15, blank=False, null=False)
 
-    email_active_code = models.CharField(_('Email verification code'), max_length=200, blank=True)
     is_email_verified = models.BooleanField(_('Email verified'), default=False)
     last_login_ip = models.GenericIPAddressField(_('Last login IP'), blank=True, null=True)    
     password_reset_token = models.UUIDField(_('Password reset token'), blank=True, null=True)
@@ -47,7 +45,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         _('Date joined'), auto_now_add=True
     )
     updated_at = models.DateTimeField(
-        _('Updated at'), auto_now_add=True
+        _('Updated at'), auto_now=True
     )
 
     objects = UserManager()
@@ -60,5 +58,13 @@ class User(AbstractBaseUser, PermissionsMixin):
         verbose_name_plural = 'Users'
 
     def __str__(self) -> str:
-        return self.email 
+        return self.email
+
+    def activate(self):
+        # This method centralizes the activation logic for a user.
+        # It's used after a successful action, like email verification,
+        # to ensure the user's account is marked as active and verified consistently.
+        self.is_active = True
+        self.is_email_verified = True
+        self.save(update_fields=['is_active', 'is_email_verified'])
 

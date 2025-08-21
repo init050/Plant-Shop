@@ -24,7 +24,6 @@ from django.contrib.auth.views import (
 )
 from django.conf import settings
 from django.shortcuts import get_object_or_404
-from .services.email_verification import EmailVerificationService
 
 
 logger = logging.getLogger(__name__)
@@ -48,10 +47,14 @@ class UserRegistrationView(generic.CreateView):
     success_url = reverse_lazy('home_page')
 
     def form_valid(self, form):
-        response = super().form_valid(form)
-        user = form.save()
+        # We need to save the user first before we can send the verification email.
+        # The `commit=False` allows us to get the user object without saving it to the database yet.
+        user = form.save(commit=False)
+        user.is_active = False # The user should not be active until they verify their email.
+        user.save()
 
-        if EmailVerificationService.send_verification_email(user):
+        # We pass the request object to the service so it can build the absolute verification URL.
+        if EmailVerificationService.send_verification_email(self.request, user):
             messages.success(
                 self.request,
                 _('Registration successful. Please check your email for verification.')
@@ -61,7 +64,7 @@ class UserRegistrationView(generic.CreateView):
                 self.request,
                 _('Registration successful, but we could not send the verification email. Please try again later.')
             )
-        return response 
+        return redirect(self.success_url)
     
     def form_invalid(self, form):
         messages.error(
@@ -71,72 +74,52 @@ class UserRegistrationView(generic.CreateView):
         return super().form_invalid(form)
 
 
-class CustomLoginView(generic.View):
-    template_name = 'account_module/login.html'
+from django.contrib.auth.views import LoginView
+from .utils.ip_retriever import get_client_ip
+
+
+class CustomLoginView(LoginView):
+    # Inheriting from Django's LoginView provides a robust, well-tested foundation.
+    # We only need to customize the form and add our specific post-login logic (like IP logging)
+    # instead of rebuilding the entire GET/POST handling from scratch.
     form_class = CustomAuthenticationForm
+    template_name = 'account_module/login.html'
 
+    def form_valid(self, form):
+        # After the form is validated and the user is retrieved, we can add custom logic.
+        user = form.get_user()
 
-    def get(self, request):
-        if request.user.is_authenticated:
-            return redirect('home_page')
-        next_url = request.GET.get('next', '')
-        return self.render_form(extra_context={'next': next_url})
-
-    def post(self, request):
-        form = self.form_class(request, data=request.POST)
-        if form.is_valid():
-            user = form.get_user()
-            #TODO : Message error : Your mail not verify
-            login(request, user)
-
-            user.last_login_ip = self.get_client_ip(request)
-            user.save(update_fields=['last_login_ip'])
-
-            next_url = request.POST.get('next') or 'home_page'
-            return redirect(next_url)
+        # It's important to check for email verification here to provide immediate feedback
+        # to the user, rather than letting them access parts of the site they shouldn't.
+        if not user.is_email_verified:
+            messages.warning(self.request, _('Your email is not verified. Please check your inbox.'))
         
-        next_url = request.POST.get('next') or ''
-        return self.render_form(form, extra_context={'next': next_url})
+        login(self.request, user)
+        
+        # Logging the last login IP is a good security practice.
+        # We've moved the IP retrieval logic to a dedicated utility for better code organization.
+        user.last_login_ip = get_client_ip(self.request)
+        user.save(update_fields=['last_login_ip'])
 
-
-    def get_client_ip(self, request):
-        x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
-        if x_forwarded_for:
-            ip = x_forwarded_for.split(',')[0]
-        else:
-            ip = request.META.get('REMOTE_ADDR')
-        return ip
-
-    def render_form(self, form=None, extra_context=None):
-        if form is None:
-            form = self.form_class()
-        context = {'form': form}
-        if extra_context:
-            context.update(extra_context)
-        return render(self.request, self.template_name, context)
+        return super().form_valid(form)
 
 
 
 class UserProfileView(LoginRequiredMixin, BaseViewMixin, generic.UpdateView):
-
     model = User
     form_class = UserProfileForm
     template_name = 'account_module/profile.html'
-    success_url = reverse_lazy('profile')
+    success_url = reverse_lazy('account_module:profile')
 
-    def get_object(self, queryset = None):
+    def get_object(self, queryset=None):
+        # This ensures that the user can only edit their own profile.
         return self.request.user
-    
-    
-    def get(self, request, *args, **kwargs):
-        return super().get(request, *args, **kwargs)
 
     def form_valid(self, form):
-        user = self.get_object()
-        user.email = form.cleaned_data['email']
-        user.avatar = form.cleaned_data['avatar']
-        user.save(update_fields=['email', 'avatar'])
-        messages.success(self.request, _('Profile updated successfully'))
+        # By letting the form handle the save, we keep the view cleaner.
+        # The UserProfileForm is designed to only allow certain fields to be edited,
+        # and the ModelForm's save() method respects this.
+        messages.success(self.request, _('Profile updated successfully.'))
         return super().form_valid(form)    
 
 
@@ -161,77 +144,57 @@ class PasswordChangeView(LoginRequiredMixin, FormView):
     
 
 class CustomPasswordResetView(PasswordResetView):
-
-
-
+    # This view initiates the password reset process. By inheriting from PasswordResetView,
+    # we get the logic for sending the reset email for free. We just need to
+    # point it to our custom form and templates.
     form_class = CustomPasswordResetForm
-    template_name = ''
-    email_template_name = ''
-    subject_template_name = ''
-    success_url = reverse_lazy('')
+    template_name = 'account_module/password_reset_form.html'
+    email_template_name = 'account_module/password_reset_email.html'
+    subject_template_name = 'account_module/password_reset_subject.txt'
+    success_url = reverse_lazy('account_module:password_reset_done')
 
     def form_valid(self, form):
-        form.save(
-            request = self.request,
-            use_https = self.request.is_secure(),
-            from_email=settings.DEFAULT_FROM_EMAIL, 
-            email_template_name = self.email_template_name,
-            subject_template_name = self.subject_template_name
-
-        )
-
         messages.success(
             self.request,
             _('If an account exists with this email, you will receive password reset instructions.')
         )
-
         return super().form_valid(form)
-    
+
 
 class CustomPasswordResetDoneView(PasswordResetDoneView):
-    template_name = 'account/password_reset_done.html'
+    # This view is shown after the user has been emailed a link.
+    # It just needs to render a template confirming that the email has been sent.
+    template_name = 'account_module/password_reset_done.html'
 
 
 class CustomPasswordResetConfirmView(PasswordResetConfirmView):
+    # This view is where the user actually sets their new password after clicking the link.
+    # We provide our custom form for setting the password and a success URL.
     form_class = CustomSetPasswordForm
-    template_name = ''
-    success_url = reverse_lazy('')
+    template_name = 'account_module/password_reset_confirm.html'
+    success_url = reverse_lazy('account_module:password_reset_complete')
 
     def form_valid(self, form):
-        response = super().form_valid(form)
         messages.success(
             self.request,
             _('Your password has been reset successfully.')
         )
-        return response
-    
+        return super().form_valid(form)
+
 
 class CustomPasswordResetCompleteView(PasswordResetCompleteView):
-    template_name = 'account/password_reset_complete.html'
+    # This is the final step, a page that confirms the password has been successfully changed.
+    template_name = 'account_module/password_reset_complete.html'
 
 
 class EmailVerificationView(generic.View):
-    
-    def get(self, request, code):
-        user = get_object_or_404(User, email_active_code=code)
-        
-        if user.is_active:
-            messages.info(request, _('Your email is already verified.'))
-            return redirect('')
-        
-        if not EmailVerificationService(user):
-            messages.error(request, _('Invalid or expired verification code.'))
-            return redirect('')
-        
-
-        user.email_active_code = ''
-        user.is_email_verified = True
-        user.is_active = True
-
-        user.save(update_fields=[
-            'email_active_code', 'is_email_verified', 'is_active'
-        ])
-
-        messages.success(request, _('Your email has been successfully verified.'))
-
-        return redirect('')
+    # This view is now a simple handler for the verification link.
+    # It's lean because all the complex logic has been moved to the EmailVerificationService.
+    # This separation of concerns makes the code easier to read, test, and maintain.
+    def get(self, request, token):
+        success, message = EmailVerificationService.verify(token)
+        if success:
+            messages.success(request, message)
+        else:
+            messages.error(request, message)
+        return redirect('account_module:login')

@@ -47,16 +47,15 @@ INSTALLED_APPS = [
     'contact_module',
     'article_module.apps.ArticleModuleConfig',
     'site_module',
-    'crispy_forms',
     'crispy_tailwind',
     'phonenumber_field',
     'mptt',
-    'ckeditor',
-    'ckeditor_uploader',
     'taggit',
     'crispy_forms',
-    'crispy_tailwind',
 ]
+
+
+
 
 
 CRISPY_ALLOWED_TEMPLATE_PACKS = "tailwind"
