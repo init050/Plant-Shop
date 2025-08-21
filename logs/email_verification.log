@@ -3,3 +3,10 @@ Failed to send verification email to jj@gmail.com: account_module/emails/verific
 Failed to send verification email to jj@gmail.com: (535, b'5.7.8 Username and Password not accepted. For more information, go to\n5.7.8  https://support.google.com/mail/?p=BadCredentials 4fb4d7f45d1cf-61a758bff1csm5924411a12.56 - gsmtp')
 Verification email sent successfully to jj@gmail.com for user 14
 Email verification successful for user 14
+Verification email sent successfully to yy@gmail.com for user 15
+Email verification successful for user 15
+Old email verification code sent to yy2222@gmail.com
+Email change initiated for user 15: yy2222@gmail.com -> mol@gmail.com
+Old email verified for user 15
+Verification email sent successfully to mol@gmail.com for user 15
+Email verification successful for user 15

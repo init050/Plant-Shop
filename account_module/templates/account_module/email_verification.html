@@ -1,69 +1,173 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
 {% load i18n %}
-{% load crispy_forms_tags %}
 
-{% block title %}{% trans "Email Verification" %}{% endblock %}
+{% block title %}Email Verification - Plant Shop{% endblock %}
 
 {% block content %}
-<div class="container py-5">
-    <div class="row justify-content-center">
-        <div class="col-md-8 col-lg-6">
-            <div class="card shadow-sm">
-                <div class="card-body p-4">
-                    <h2 class="text-center mb-4">{% trans "Email Verification" %}</h2>
-                    
-                    {% if messages %}
-                        {% for message in messages %}
-                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                                {{ message }}
-                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                            </div>
-                        {% endfor %}
-                    {% endif %}
+<div class="min-h-screen bg-gradient-to-br from-green-50 via-white to-green-100 flex items-center justify-center px-4 sm:px-6 lg:px-8">
+    <div class="max-w-md w-full space-y-8">
+        <div class="text-center">
+            <div class="mx-auto h-16 w-16 bg-green-100 rounded-full flex items-center justify-center">
+                <svg class="h-8 w-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                </svg>
+            </div>
+            <h2 class="mt-6 text-3xl font-bold text-gray-900">Email Verification</h2>
+            <p class="mt-2 text-sm text-gray-600">Verify your email to activate your account</p>
+        </div>
 
-                    {% if user %}
-                        {% if not user.is_email_verified %}
-                            <div class="text-center mb-4">
-                                <p class="text-muted">
-                                    {% trans "Please check your email for the verification link. If you haven't received it, you can request a new one." %}
-                                </p>
-                                
-                                {% if can_resend %}
-                                    <form method="post" class="mt-3">
-                                        {% csrf_token %}
-                                        <button type="submit" class="btn btn-primary">
-                                            {% trans "Resend Verification Email" %}
-                                        </button>
-                                    </form>
-                                {% else %}
-                                    <div class="alert alert-info mt-3">
-                                        {% trans "Please wait a few minutes before requesting another verification email." %}
-                                    </div>
-                                {% endif %}
+        {% if messages %}
+            <div class="space-y-2">
+                {% for message in messages %}
+                    <div class="rounded-lg p-4 {% if message.tags == 'error' %}bg-red-50 border border-red-200 text-red-800{% elif message.tags == 'success' %}bg-green-50 border border-green-200 text-green-800{% elif message.tags == 'warning' %}bg-yellow-50 border border-yellow-200 text-yellow-800{% else %}bg-blue-50 border border-blue-200 text-blue-800{% endif %}">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0">
+                                <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                                    {% if message.tags == 'error' %}
+                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                                    {% elif message.tags == 'success' %}
+                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                    {% else %}
+                                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                                    {% endif %}
+                                </svg>
                             </div>
+                            <div class="ml-3">
+                                <p class="text-sm font-medium">{{ message }}</p>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <div class="bg-white shadow-xl rounded-2xl p-8">
+            {% if user %}
+                {% if not user.is_email_verified %}
+                    <div class="text-center space-y-6">
+                        <div class="mx-auto h-20 w-20 bg-yellow-100 rounded-full flex items-center justify-center">
+                            <svg class="h-10 w-10 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.314 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+                            </svg>
+                        </div>
+                        
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900 mb-2">Check Your Email</h3>
+                            <p class="text-gray-600 text-sm leading-relaxed">
+                                We've sent a verification link to <strong>{{ user.email }}</strong>. 
+                                Please check your email and click the link to verify your account.
+                            </p>
+                        </div>
+
+                        {% if can_resend %}
+                            <form method="post" class="mt-6">
+                                {% csrf_token %}
+                                <button type="submit" class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition duration-150 ease-in-out">
+                                    <span class="flex items-center">
+                                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                                        </svg>
+                                        Resend Verification Email
+                                    </span>
+                                </button>
+                            </form>
                         {% else %}
-                            <div class="alert alert-success">
-                                {% trans "Your email has been verified successfully!" %}
-                            </div>
-                            <div class="text-center mt-3">
-                                <a href="{% url 'account:profile' %}" class="btn btn-primary">
-                                    {% trans "Go to Profile" %}
-                                </a>
+                            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                                <div class="flex">
+                                    <div class="flex-shrink-0">
+                                        <svg class="h-5 w-5 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
+                                        </svg>
+                                    </div>
+                                    <div class="ml-3">
+                                        <p class="text-sm text-blue-800">
+                                            Please wait a few minutes before requesting another verification email.
+                                        </p>
+                                    </div>
+                                </div>
                             </div>
                         {% endif %}
-                    {% else %}
-                        <div class="text-center">
-                            <p class="text-muted">
-                                {% trans "Please log in to verify your email." %}
-                            </p>
-                            <a href="{% url 'account:login' %}" class="btn btn-primary">
-                                {% trans "Login" %}
+
+                        <div class="flex space-x-4">
+                            <a href="{% url 'account_module:profile' %}" class="flex-1 py-2 px-4 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition duration-150 ease-in-out text-center">
+                                Go to Profile
+                            </a>
+                            <a href="{% url 'home_page' %}" class="flex-1 py-2 px-4 border border-transparent rounded-lg text-sm font-medium text-white bg-gray-600 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition duration-150 ease-in-out text-center">
+                                Back to Home
                             </a>
                         </div>
-                    {% endif %}
+                    </div>
+                {% else %}
+                    <div class="text-center space-y-6">
+                        <div class="mx-auto h-20 w-20 bg-green-100 rounded-full flex items-center justify-center">
+                            <svg class="h-10 w-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                        </div>
+                        
+                        <div>
+                            <h3 class="text-lg font-semibold text-green-900 mb-2">Email Verified Successfully!</h3>
+                            <p class="text-gray-600 text-sm">
+                                Your email has been verified and your account is now active.
+                            </p>
+                        </div>
+
+                        <div class="flex space-x-4">
+                            <a href="{% url 'account_module:profile' %}" class="flex-1 py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition duration-150 ease-in-out text-center">
+                                Go to Profile
+                            </a>
+                            <a href="{% url 'home_page' %}" class="flex-1 py-3 px-4 border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition duration-150 ease-in-out text-center">
+                                Back to Home
+                            </a>
+                        </div>
+                    </div>
+                {% endif %}
+            {% else %}
+                <div class="text-center space-y-6">
+                    <div class="mx-auto h-20 w-20 bg-red-100 rounded-full flex items-center justify-center">
+                        <svg class="h-10 w-10 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.314 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+                        </svg>
+                    </div>
+                    
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-900 mb-2">Please Sign In</h3>
+                        <p class="text-gray-600 text-sm">
+                            You need to be logged in to verify your email address.
+                        </p>
+                    </div>
+
+                    <a href="{% url 'account_module:login' %}" class="inline-flex items-center px-6 py-3 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition duration-150 ease-in-out">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/>
+                        </svg>
+                        Sign In
+                    </a>
+                </div>
+            {% endif %}
+
+            <div class="mt-8 pt-6 border-t border-gray-200">
+                <div class="bg-gray-50 rounded-lg p-4">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <svg class="h-5 w-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                            </svg>
+                        </div>
+                        <div class="ml-3">
+                            <h3 class="text-sm font-medium text-gray-800">Tips</h3>
+                            <div class="mt-2 text-sm text-gray-600">
+                                <ul class="list-disc list-inside space-y-1">
+                                    <li>Check your spam/junk folder</li>
+                                    <li>Make sure {{ user.email|default:"your email" }} is correct</li>
+                                    <li>Verification links expire after 24 hours</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
-{% endblock %} 
+{% endblock %}

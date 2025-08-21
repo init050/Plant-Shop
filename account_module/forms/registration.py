@@ -92,9 +92,8 @@ class UserRegistrationForm(ModelForm):
 class UserProfileForm(ModelForm):
     class Meta:
         model = User
-        fields = ['avatar', 'phone_number', 'email', 'username']
+        fields = ['avatar', 'phone_number', 'username']
         widgets = {
-            'email': forms.EmailInput(attrs={'placeholder': 'plant@example.com'}),
             'username': forms.TextInput(attrs={'placeholder': _('username')}),
             'phone_number': forms.TextInput(attrs={'placeholder': '+989123456789'}),
             'avatar': forms.FileInput(attrs={'accept': 'image/*'})
@@ -102,10 +101,8 @@ class UserProfileForm(ModelForm):
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # This form is designed to only allow updates to the email and avatar fields.
-        # Disabling other fields here enforces this rule at the form level,
-        # preventing accidental updates to fields like username or phone number.
+        # Email changes now go through separate secure flow
         for field_name in self.fields:
-            if field_name not in ['email', 'avatar']:
+            if field_name not in ['avatar']:
                 self.fields[field_name].disabled = True
-
+                

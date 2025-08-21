@@ -4,12 +4,14 @@ import logging
 from django.contrib.auth import get_user_model
 from .models import User
 from .forms.registration import UserRegistrationForm, UserProfileForm
+from .forms.email_change import EmailChangeForm, OldEmailVerificationForm
 from django.views.generic.edit import FormView
 from .forms.auth import(
     CustomAuthenticationForm, CustomPasswordChangeForm,
     CustomPasswordResetForm, CustomSetPasswordForm
 )
 from .services.email_verification import EmailVerificationService
+from .services.email_change_service import EmailChangeService
 from django.contrib import messages
 from django.utils.translation import gettext_lazy as _
 from django.shortcuts import redirect, render
@@ -89,6 +91,12 @@ class CustomLoginView(LoginView):
     form_class = CustomAuthenticationForm
     template_name = 'account_module/login.html'
 
+    def get_success_url(self):
+        next_url = self.request.GET.get('next')
+        if next_url:
+            return next_url
+        return reverse_lazy('home_page')
+
     def form_valid(self, form):
         # After the form is validated and the user is retrieved, we can add custom logic.
         user = form.get_user()
@@ -129,34 +137,76 @@ class UserProfileView(LoginRequiredMixin, BaseViewMixin, generic.UpdateView):
         return self.request.user
 
     def form_valid(self, form):
-        # By letting the form handle the save, we keep the view cleaner.
-        # The UserProfileForm is designed to only allow certain fields to be edited,
-        # and the ModelForm's save() method respects this.
-        old_email = self.request.user.email
-        new_email = form.cleaned_data.get('email')
+        # Only allow avatar changes in profile - email changes go through separate secure flow
+        form.save()
+        messages.success(self.request, _('Profile updated successfully.'))
+        return redirect(self.success_url)
+
+
+class EmailChangeInitiateView(LoginRequiredMixin, FormView):
+    form_class = EmailChangeForm
+    template_name = 'account_module/email_change_initiate.html'
+    success_url = reverse_lazy('account_module:email_change_verify_old')
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['user'] = self.request.user
+        return kwargs
+
+    def form_valid(self, form):
+        new_email = form.cleaned_data['new_email']
         
-        if old_email != new_email:
-            user = form.save(commit=False)
-            user.pending_email = new_email
-            user.email = old_email
-            user.is_email_verified = False
-            user.save()
-            
-            if EmailVerificationService.send_verification_email_for_change(self.request, user, new_email):
+        if EmailChangeService.initiate_email_change(self.request, self.request.user, new_email):
+            messages.success(
+                self.request,
+                _('Verification code sent to your current email. Please check your inbox.')
+            )
+        else:
+            messages.error(
+                self.request,
+                _('Failed to initiate email change. Please try again.')
+            )
+        
+        return super().form_valid(form)
+
+
+class EmailChangeVerifyOldView(LoginRequiredMixin, FormView):
+    form_class = OldEmailVerificationForm
+    template_name = 'account_module/email_change_verify_old.html'
+    success_url = reverse_lazy('account_module:email_change_verify_new')
+
+    def form_valid(self, form):
+        code = form.cleaned_data['verification_code']
+        user = self.request.user
+        
+        success, message = EmailChangeService.verify_old_email(user, code)
+        
+        if success:
+            # Send verification link to new email
+            if EmailChangeService.send_new_email_verification(self.request, user):
                 messages.success(
-                    self.request, 
-                    _('Verification email sent to your new email address. Please verify to complete the change.')
+                    self.request,
+                    _('Old email verified. Verification link sent to your new email address.')
                 )
             else:
                 messages.error(
                     self.request,
-                    _('Could not send verification email. Please try again later.')
+                    _('Old email verified but failed to send verification to new email.')
                 )
         else:
-            form.save()
-            messages.success(self.request, _('Profile updated successfully.'))
-            
-        return redirect(self.success_url)    
+            messages.error(self.request, message)
+            return self.form_invalid(form)
+        
+        return super().form_valid(form)
+
+
+class EmailChangeVerifyNewView(LoginRequiredMixin, generic.TemplateView):
+    template_name = 'account_module/email_change_verify_new.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['pending_email'] = self.request.user.pending_email
+        return context
 
 
 class PasswordChangeView(LoginRequiredMixin, FormView):
@@ -247,6 +297,13 @@ class EmailVerificationConfirmView(generic.View):
         success, message = EmailVerificationService.verify(token)
         
         if success:
+            # Check if this is part of email change process
+            user = request.user if request.user.is_authenticated else None
+            if user and user.old_email_verified and user.pending_email:
+                EmailChangeService.complete_email_change(user)
+                messages.success(request, _('Email change completed successfully.'))
+                return redirect('account_module:profile')
+            
             messages.success(request, message)
             if 'pending_verification_user_id' in request.session:
                 del request.session['pending_verification_user_id']
@@ -259,14 +316,18 @@ class EmailVerificationConfirmView(generic.View):
 
 
 class CustomPasswordResetView(PasswordResetView):
-    # This view initiates the password reset process. By inheriting from PasswordResetView,
-    # we get the logic for sending the reset email for free. We just need to
-    # point it to our custom form and templates.
     form_class = CustomPasswordResetForm
     template_name = 'account_module/password_reset_form.html'
-    email_template_name = 'account_module/password_reset_email.html'
+    email_template_name = 'account_module/password_reset_email.txt'  
     subject_template_name = 'account_module/password_reset_subject.txt'
     success_url = reverse_lazy('account_module:password_reset_done')
+
+    def form_valid(self, form):
+        messages.success(
+            self.request,
+            _('If an account exists with this email, you will receive password reset instructions.')
+        )
+        return super().form_valid(form)
 
     def form_valid(self, form):
         messages.success(
