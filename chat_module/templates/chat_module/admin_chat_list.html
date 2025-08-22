@@ -1,0 +1,183 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Page Header -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 mb-6 p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-2xl font-bold text-gray-900">Chat Management</h1>
+                    <p class="text-sm text-gray-600 mt-1">Manage all support conversations</p>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="bg-green-100 px-3 py-1 rounded-full">
+                        <span class="text-sm font-medium text-green-800">{{ rooms.paginator.count }} Rooms</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Search Bar -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 mb-6 p-6">
+            <form method="get" class="flex space-x-4">
+                <div class="flex-1">
+                    <input 
+                        type="text" 
+                        name="search" 
+                        value="{{ search_query }}"
+                        placeholder="Search by user email, username, or room title..."
+                        class="block w-full rounded-lg border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"
+                    >
+                </div>
+                <button 
+                    type="submit"
+                    class="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition duration-150 ease-in-out"
+                >
+                    Search
+                </button>
+                {% if search_query %}
+                    <a 
+                        href="{% url 'chat_module:admin_list' %}"
+                        class="bg-gray-100 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-200 transition duration-150 ease-in-out"
+                    >
+                        Clear
+                    </a>
+                {% endif %}
+            </form>
+        </div>
+
+        <!-- Chat Rooms List -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200">
+            {% if rooms %}
+                <div class="divide-y divide-gray-200">
+                    {% for room in rooms %}
+                        <div class="p-6 hover:bg-gray-50 transition duration-150 ease-in-out">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-4 flex-1">
+                                    <!-- User Avatar -->
+                                    <div class="w-12 h-12 rounded-full overflow-hidden bg-gray-200 flex-shrink-0">
+                                        {% if room.user.avatar %}
+                                            <img src="{{ room.user.avatar.url }}" alt="Avatar" class="w-full h-full object-cover">
+                                        {% else %}
+                                            <div class="w-full h-full bg-blue-100 flex items-center justify-center">
+                                                <svg class="w-6 h-6 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
+                                                    <path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z"/>
+                                                </svg>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <!-- Room Info -->
+                                    <div class="flex-1 min-w-0">
+                                        <div class="flex items-center space-x-2">
+                                            <h3 class="text-lg font-medium text-gray-900 truncate">{{ room.title }}</h3>
+                                            {% if not room.is_active %}
+                                                <span class="bg-red-100 text-red-800 text-xs font-medium px-2 py-1 rounded-full">Inactive</span>
+                                            {% endif %}
+                                        </div>
+                                        <div class="mt-1 flex items-center space-x-4 text-sm text-gray-500">
+                                            <span>{{ room.user.email }}</span>
+                                            <span>•</span>
+                                            <span>Last activity: {{ room.last_activity|timesince }} ago</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Actions and Status -->
+                                <div class="flex items-center space-x-4">
+                                    {% if room.unread_count > 0 %}
+                                        <div class="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full min-w-6 text-center">
+                                            {{ room.unread_count }}
+                                        </div>
+                                    {% endif %}
+                                    
+                                    <a 
+                                        href="{% url 'chat_module:admin_room' room.id %}"
+                                        class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition duration-150 ease-in-out text-sm font-medium"
+                                    >
+                                        View Chat
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+                
+                <!-- Pagination -->
+                {% if rooms.has_other_pages %}
+                    <div class="bg-gray-50 px-6 py-3 border-t border-gray-200">
+                        <div class="flex items-center justify-between">
+                            <div class="text-sm text-gray-700">
+                                Showing {{ rooms.start_index }} to {{ rooms.end_index }} of {{ rooms.paginator.count }} rooms
+                            </div>
+                            
+                            <nav class="flex space-x-2">
+                                {% if rooms.has_previous %}
+                                    <a 
+                                        href="?page=1{% if search_query %}&search={{ search_query }}{% endif %}"
+                                        class="px-3 py-2 rounded-lg text-sm font-medium text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition duration-150 ease-in-out"
+                                    >
+                                        First
+                                    </a>
+                                    <a 
+                                        href="?page={{ rooms.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}"
+                                        class="px-3 py-2 rounded-lg text-sm font-medium text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition duration-150 ease-in-out"
+                                    >
+                                        Previous
+                                    </a>
+                                {% endif %}
+                                
+                                <span class="px-3 py-2 rounded-lg text-sm font-medium bg-green-600 text-white">
+                                    {{ rooms.number }}
+                                </span>
+                                
+                                {% if rooms.has_next %}
+                                    <a 
+                                        href="?page={{ rooms.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}"
+                                        class="px-3 py-2 rounded-lg text-sm font-medium text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition duration-150 ease-in-out"
+                                    >
+                                        Next
+                                    </a>
+                                    <a 
+                                        href="?page={{ rooms.paginator.num_pages }}{% if search_query %}&search={{ search_query }}{% endif %}"
+                                        class="px-3 py-2 rounded-lg text-sm font-medium text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition duration-150 ease-in-out"
+                                    >
+                                        Last
+                                    </a>
+                                {% endif %}
+                            </nav>
+                        </div>
+                    </div>
+                {% endif %}
+            {% else %}
+                <div class="text-center py-12">
+                    <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                    </svg>
+                    <h3 class="mt-2 text-sm font-medium text-gray-900">No chat rooms found</h3>
+                    <p class="mt-1 text-sm text-gray-500">
+                        {% if search_query %}
+                            No rooms match your search criteria.
+                        {% else %}
+                            Chat rooms will appear here when users start conversations.
+                        {% endif %}
+                    </p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+// Auto-refresh page every 30 seconds to show new messages
+setInterval(function() {
+    // Only refresh if no form is being filled
+    const activeElement = document.activeElement;
+    if (!activeElement || activeElement.tagName !== 'INPUT') {
+        window.location.reload();
+    }
+}, 30000);
+</script>
+{% endblock %}

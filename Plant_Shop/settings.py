@@ -34,6 +34,7 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    'daphne',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -52,10 +53,23 @@ INSTALLED_APPS = [
     'mptt',
     'taggit',
     'crispy_forms',
+    'chat_module',
+    'channels',
+    
 ]
 
+ASGI_APPLICATION = 'Plant_Shop.asgi.application'
 
-
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels.layers.InMemoryChannelLayer',
+        # For production, use Redis:
+        # 'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        # 'CONFIG': {
+        #     "hosts": [('127.0.0.1', 6379)],
+        # },
+    },
+}
 
 
 CRISPY_ALLOWED_TEMPLATE_PACKS = "tailwind"
