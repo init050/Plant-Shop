@@ -23,7 +23,11 @@ class ArticleListView(ListView):
     paginate_by = 9
     
     def get_queryset(self):
-        queryset = Article.objects.published().select_related('author')
+        # Temporarily show all articles for debugging
+        if self.request.user.is_staff:
+            queryset = Article.objects.all().select_related('author')
+        else:
+            queryset = Article.objects.published().select_related('author')
         
         query = self.request.GET.get('query')
         if query:

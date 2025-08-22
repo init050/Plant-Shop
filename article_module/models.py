@@ -142,7 +142,6 @@ class Article(models.Model):
         if user.is_staff or user.is_superuser:
             return True
         
-        # Check if user has published an article in the last 24 hours
         last_24_hours = timezone.now() - timedelta(hours=24)
         recent_articles = cls.objects.filter(
             author=user,
@@ -223,3 +222,5 @@ class ArticleView(models.Model):
         indexes = [
             models.Index(fields=['article', 'viewed_at']),
         ]
+
+        

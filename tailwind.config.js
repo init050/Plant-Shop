@@ -3,6 +3,8 @@ module.exports = {
   content: [
     "./home_module/templates/**/*.html",
     "./account_module/templates/**/*.html",
+    "./chat_module/templates/**/*.html", 
+    "./article_module/templates/**/*.html", 
     "./templates/**/*.html",
     "./static/css/src/**/*.{html,js,css}"
   ],
@@ -14,6 +16,9 @@ module.exports = {
       spacing: {
         '10p':'10%',
       },
+      animation: {
+        'bounce': 'bounce 1s infinite',  
+      }
     },
   },
   plugins: [],
