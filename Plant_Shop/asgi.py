@@ -5,6 +5,12 @@ from channels.auth import AuthMiddlewareStack
 from channels.security.websocket import AllowedHostsOriginValidator
 import chat_module.routing
 
+try:
+    from load_env import load_environment
+    load_environment()
+except ImportError:
+    pass
+
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'Plant_Shop.settings')
 
 django_asgi_app = get_asgi_application()
