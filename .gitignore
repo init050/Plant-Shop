@@ -1,1 +1,6 @@
 node_modules/
+__pycache__/
+local_settings.py
+*.log
+*.pot
+*.pyc

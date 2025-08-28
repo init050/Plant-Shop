@@ -1,0 +1,182 @@
+{% extends 'base.html' %}
+{% load i18n static %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-12">
+    <div class="container mx-auto px-4">
+
+        <div class="text-center mb-12">
+            <h1 class="text-4xl font-bold text-gray-800 mb-4">
+                {% trans 'Our Plant Collection' %}
+            </h1>
+            <p class="text-gray-600 max-w-2xl mx-auto">
+                {% trans 'Discover beautiful plants and premium pots for your home and garden' %}
+            </p>
+        </div>
+
+        <div class="flex flex-col lg:flex-row gap-8">
+
+            <aside class="lg:w-1/4">
+                <div class="bg-white rounded-xl shadow-lg p-6 sticky top-6">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-6">
+                        {% trans 'Filter Products' %}
+                    </h3>
+
+                    <form method="get" class="space-y-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                {% trans 'Category' %}
+                            </label>
+                            {{ filter_form.category }}
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">
+                                    {% trans 'Size' %}
+                                </label>
+                                {{ filter_form.size }}
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">
+                                    {% trans 'Color' %}
+                                </label>
+                                {{ filter_form.color }}
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">
+                                    {% trans 'Min Price' %}
+                                </label>
+                                {{ filter_form.min_price }}
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">
+                                    {% trans 'Max Price' %}
+                                </label>
+                                {{ filter_form.max_price }}
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                {% trans 'Sort By' %}
+                            </label>
+                            {{ filter_form.sort_by }}
+                        </div>
+
+                        <div class="flex gap-2">
+                            <button type="submit" class="flex-1 bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition duration-200">
+                                {% trans 'Apply Filters' %}
+                            </button>
+                            <a href="{% url 'product_module:product_list' %}" class="bg-gray-200 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-300 transition duration-200">
+                                {% trans 'Clear' %}
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </aside>
+
+            <main class="lg:w-3/4">
+                {% if products %}
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                        {% for product in products %}
+                            <div class="bg-white rounded-xl shadow-lg hover:shadow-xl transition duration-300 overflow-hidden">
+                                <div class="relative">
+                                    {% if product.image %}
+                                        <img src="{{ product.image.url }}" alt="{{ product.title }}" class="w-full h-48 object-cover">
+                                    {% else %}
+                                        <div class="w-full h-48 bg-gray-200 flex items-center justify-center">
+                                            <span class="text-gray-400">{% trans 'No Image' %}</span>
+                                        </div>
+                                    {% endif %}
+
+                                    {% if product.is_featured %}
+                                        <span class="absolute top-2 left-2 bg-yellow-400 text-yellow-900 px-2 py-1 rounded-full text-xs font-semibold">
+                                            {% trans 'Featured' %}
+                                        </span>
+                                    {% endif %}
+
+                                    {% if product.final_price != product.price %}
+                                        <span class="absolute top-2 right-2 bg-red-500 text-white px-2 py-1 rounded-full text-xs font-semibold">
+                                            {% trans 'Sale' %}
+                                        </span>
+                                    {% endif %}
+                                </div>
+
+                                <div class="p-6">
+                                    <h3 class="text-lg font-semibold text-gray-800 mb-2">{{ product.title }}</h3>
+                                    <p class="text-gray-600 text-sm mb-4">{{ product.short_description|truncatechars:80 }}</p>
+
+                                    <div class="flex items-center justify-between mb-4">
+                                        <div class="flex items-center gap-2">
+                                            <span class="text-sm text-gray-500 capitalize">{{ product.size }}</span>
+                                            <span class="w-4 h-4 rounded-full border" style="background-color: {{ product.color }};"></span>
+                                        </div>
+                                        <div class="text-right">
+                                            {% if product.final_price != product.price %}
+                                                <span class="text-lg font-bold text-green-600">${{ product.final_price }}</span>
+                                                <span class="text-sm text-gray-500 line-through ml-2">${{ product.price }}</span>
+                                            {% else %}
+                                                <span class="text-lg font-bold text-gray-800">${{ product.price }}</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-sm text-gray-500">{% trans 'Stock:' %} {{ product.stock_quantity }}</span>
+                                        <a href="{{ product.get_absolute_url }}" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition duration-200">
+                                            {% trans 'View Details' %}
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    {% if page_obj.has_other_pages %}
+                        <div class="flex justify-center mt-12">
+                            <nav class="flex items-center gap-2">
+                                {% if page_obj.has_previous %}
+                                    <a href="?page=1" class="px-3 py-2 text-gray-500 hover:text-green-600">
+                                        {% trans 'First' %}
+                                    </a>
+                                    <a href="?page={{ page_obj.previous_page_number }}" class="px-3 py-2 text-gray-500 hover:text-green-600">
+                                        {% trans 'Previous' %}
+                                    </a>
+                                {% endif %}
+
+                                <span class="px-4 py-2 bg-green-600 text-white rounded">
+                                    {% blocktrans %}Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}{% endblocktrans %}
+                                </span>
+
+                                {% if page_obj.has_next %}
+                                    <a href="?page={{ page_obj.next_page_number }}" class="px-3 py-2 text-gray-500 hover:text-green-600">
+                                        {% trans 'Next' %}
+                                    </a>
+                                    <a href="?page={{ page_obj.paginator.num_pages }}" class="px-3 py-2 text-gray-500 hover:text-green-600">
+                                        {% trans 'Last' %}
+                                    </a>
+                                {% endif %}
+                            </nav>
+                        </div>
+                    {% endif %}
+
+                {% else %}
+                    <div class="text-center py-20">
+                        <div class="text-gray-400 text-6xl mb-4">🌱</div>
+                        <h2 class="text-2xl font-semibold text-gray-600 mb-2">
+                            {% trans 'No products found' %}
+                        </h2>
+                        <p class="text-gray-500">
+                            {% trans 'Try adjusting your filters or browse all categories' %}
+                        </p>
+                    </div>
+                {% endif %}
+            </main>
+        </div>
+    </div>
+</div>
+{% endblock %}

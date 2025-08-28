@@ -1,17 +1,175 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-</head>
-<body>
-    <h1>Test</h1>
-    <style>
-        h1{
-            color: red;
-        }
-    </style>
-    
-</body>
-</html>
+<!-- home_module/templates/home_module/index.html -->
+{% extends 'base.html' %}
+{% load static i18n %}
+
+{% block content %}
+
+<div class="relative">
+    <div class="min-h-screen bg-gradient-to-br from-green-50 via-white to-green-100 flex items-center justify-center relative overflow-hidden">
+        <img src="{% static 'images/home/bg.svg' %}" alt="Background" class="absolute inset-0 w-full h-full object-cover opacity-20">
+        
+        <div class="relative z-10 text-center px-4 max-w-6xl mx-auto">
+            <h1 class="text-5xl md:text-7xl font-bold text-gray-800 mb-6 leading-tight">
+                {% trans 'Welcome to' %} <span class="text-green-600">{% trans 'Plant Shop' %}</span>
+            </h1>
+            <p class="text-xl md:text-2xl text-gray-600 mb-8 max-w-3xl mx-auto leading-relaxed">
+                {% trans 'Discover beautiful plants and premium pots to transform your home into a green paradise' %}
+            </p>
+            
+            <div class="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
+                <a href="{% url 'product_module:product_list' %}" 
+                   class="bg-green-600 text-white px-8 py-4 rounded-xl font-semibold text-lg hover:bg-green-700 transform hover:scale-105 transition duration-300 shadow-lg">
+                    🌱 {% trans 'Shop Plants' %}
+                </a>
+                <a href="{% url 'product_module:product_list' %}?color=terracotta" 
+                   class="bg-white text-green-600 border-2 border-green-600 px-8 py-4 rounded-xl font-semibold text-lg hover:bg-green-50 transform hover:scale-105 transition duration-300 shadow-lg">
+                    🏺 {% trans 'Browse Pots' %}
+                </a>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mt-16">
+                <div class="bg-white/80 backdrop-blur-sm rounded-2xl p-8 shadow-xl hover:shadow-2xl transition duration-300 transform hover:-translate-y-2">
+                    <div class="text-4xl mb-4">🌿</div>
+                    <h3 class="text-2xl font-bold text-gray-800 mb-4">
+                        {% trans 'Fresh Plants' %}
+                    </h3>
+                    <p class="text-gray-600">
+                        {% trans 'Hand-picked, healthy plants delivered directly to your doorstep' %}
+                    </p>
+                </div>
+                
+                <div class="bg-white/80 backdrop-blur-sm rounded-2xl p-8 shadow-xl hover:shadow-2xl transition duration-300 transform hover:-translate-y-2">
+                    <div class="text-4xl mb-4">🏺</div>
+                    <h3 class="text-2xl font-bold text-gray-800 mb-4">
+                        {% trans 'Premium Pots' %}
+                    </h3>
+                    <p class="text-gray-600">
+                        {% trans 'Beautiful, durable pots in various sizes and colors for every plant' %}
+                    </p>
+                </div>
+                
+                <div class="bg-white/80 backdrop-blur-sm rounded-2xl p-8 shadow-xl hover:shadow-2xl transition duration-300 transform hover:-translate-y-2">
+                    <div class="text-4xl mb-4">🚚</div>
+                    <h3 class="text-2xl font-bold text-gray-800 mb-4">
+                        {% trans 'Free Delivery' %}
+                    </h3>
+                    <p class="text-gray-600">
+                        {% trans 'Fast and safe delivery with expert packaging for all your orders' %}
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Featured Products Section -->
+<section class="py-20 bg-white">
+    <div class="container mx-auto px-4">
+        <div class="text-center mb-16">
+            <h2 class="text-4xl font-bold text-gray-800 mb-4">
+                {% trans 'Featured Products' %}
+            </h2>
+            <p class="text-gray-600 max-w-2xl mx-auto">
+                {% trans 'Discover our handpicked selection of the most popular plants and pots' %}
+            </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            <div class="group cursor-pointer">
+                <div class="bg-gray-100 rounded-2xl overflow-hidden mb-4 transform group-hover:scale-105 transition duration-300">
+                    <div class="h-48 bg-gradient-to-br from-green-200 to-green-300 flex items-center justify-center">
+                        <span class="text-4xl">🌱</span>
+                    </div>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-800 mb-2">
+                    {% trans 'Small Plants' %}
+                </h3>
+                <p class="text-gray-600 text-sm mb-3">
+                    {% trans 'Perfect for desks and small spaces' %}
+                </p>
+                <a href="{% url 'product_module:product_list' %}?size=small" class="text-green-600 font-medium hover:text-green-700">
+                    {% trans 'View Collection' %} →
+                </a>
+            </div>
+
+            <div class="group cursor-pointer">
+                <div class="bg-gray-100 rounded-2xl overflow-hidden mb-4 transform group-hover:scale-105 transition duration-300">
+                    <div class="h-48 bg-gradient-to-br from-green-300 to-green-400 flex items-center justify-center">
+                        <span class="text-4xl">🌿</span>
+                    </div>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-800 mb-2">
+                    {% trans 'Medium Plants' %}
+                </h3>
+                <p class="text-gray-600 text-sm mb-3">
+                    {% trans 'Great for living rooms and offices' %}
+                </p>
+                <a href="{% url 'product_module:product_list' %}?size=medium" class="text-green-600 font-medium hover:text-green-700">
+                    {% trans 'View Collection' %} →
+                </a>
+            </div>
+
+            <div class="group cursor-pointer">
+                <div class="bg-gray-100 rounded-2xl overflow-hidden mb-4 transform group-hover:scale-105 transition duration-300">
+                    <div class="h-48 bg-gradient-to-br from-green-400 to-green-500 flex items-center justify-center">
+                        <span class="text-4xl">🌳</span>
+                    </div>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-800 mb-2">
+                    {% trans 'Large Plants' %}
+                </h3>
+                <p class="text-gray-600 text-sm mb-3">
+                    {% trans 'Statement pieces for your home' %}
+                </p>
+                <a href="{% url 'product_module:product_list' %}?size=large" class="text-green-600 font-medium hover:text-green-700">
+                    {% trans 'View Collection' %} →
+                </a>
+            </div>
+
+            <div class="group cursor-pointer">
+                <div class="bg-gray-100 rounded-2xl overflow-hidden mb-4 transform group-hover:scale-105 transition duration-300">
+                    <div class="h-48 bg-gradient-to-br from-orange-200 to-orange-300 flex items-center justify-center">
+                        <span class="text-4xl">🏺</span>
+                    </div>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-800 mb-2">
+                    {% trans 'Premium Pots' %}
+                </h3>
+                <p class="text-gray-600 text-sm mb-3">
+                    {% trans 'Beautiful pots in all colors' %}
+                </p>
+                <a href="{% url 'product_module:product_list' %}?color=" class="text-green-600 font-medium hover:text-green-700">
+                    {% trans 'View Collection' %} →
+                </a>
+            </div>
+        </div>
+
+        <div class="text-center mt-12">
+            <a href="{% url 'product_module:product_list' %}" class="bg-green-600 text-white px-8 py-3 rounded-xl font-semibold hover:bg-green-700 transition duration-300 inline-block">
+                {% trans 'View All Products' %}
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- Newsletter Section -->
+<section class="py-16 bg-gradient-to-r from-green-600 to-green-700">
+    <div class="container mx-auto px-4 text-center">
+        <h3 class="text-3xl font-bold text-white mb-4">
+            {% trans 'Stay Updated with Plant Care Tips' %}
+        </h3>
+        <p class="text-green-100 mb-8 max-w-2xl mx-auto">
+            {% trans 'Get expert advice, seasonal care guides, and exclusive offers delivered to your inbox' %}
+        </p>
+
+        <form class="max-w-md mx-auto flex flex-col sm:flex-row gap-4">
+            <input type="email" placeholder="{% trans 'Enter your email address' %}"
+                   class="flex-1 px-6 py-3 rounded-lg text-gray-800 focus:outline-none focus:ring-4 focus:ring-green-300">
+            <button type="submit" class="bg-white text-green-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition duration-300">
+                {% trans 'Subscribe' %}
+            </button>
+        </form>
+    </div>
+</section>
+
+{% endblock %}

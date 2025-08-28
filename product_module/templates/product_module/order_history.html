@@ -1,0 +1,125 @@
+<!-- product_module/templates/product_module/order_history.html -->
+{% extends 'base.html' %}
+{% load i18n static %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-12">
+    <div class="container mx-auto px-4">
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-gray-800 mb-4">
+                📋 {% trans 'Order History' %}
+            </h1>
+            <p class="text-gray-600">
+                {% trans 'Track and manage your orders' %}
+            </p>
+        </div>
+
+        {% if orders %}
+            <div class="space-y-6">
+                {% for order in orders %}
+                    <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+                        <div class="p-6">
+                            <div class="flex justify-between items-start mb-4">
+                                <div>
+                                    <h3 class="text-lg font-semibold text-gray-800">
+                                        {% trans 'Order' %} #{{ order.order_id }}
+                                    </h3>
+                                    <p class="text-sm text-gray-600">
+                                        {{ order.created_at|date:"F d, Y at g:i A" }}
+                                    </p>
+                                </div>
+                                <div class="text-right">
+                                    <span class="inline-block px-3 py-1 rounded-full text-sm font-semibold
+                                        {% if order.status == 'pending' %}bg-yellow-100 text-yellow-800{% endif %}
+                                        {% if order.status == 'processing' %}bg-blue-100 text-blue-800{% endif %}
+                                        {% if order.status == 'shipped' %}bg-purple-100 text-purple-800{% endif %}
+                                        {% if order.status == 'delivered' %}bg-green-100 text-green-800{% endif %}
+                                        {% if order.status == 'cancelled' %}bg-red-100 text-red-800{% endif %}
+                                    ">
+                                        {{ order.get_status_display }}
+                                    </span>
+                                    <p class="text-lg font-bold text-gray-800 mt-1">${{ order.total_amount }}</p>
+                                </div>
+                            </div>
+
+                            <div class="flex items-center gap-4 mb-4">
+                                {% for item in order.items.all|slice:":3" %}
+                                    <div class="flex items-center gap-2">
+                                        {% if item.product.image %}
+                                            <img src="{{ item.product.image.url }}" alt="{{ item.product_title }}" class="w-12 h-12 object-cover rounded">
+                                        {% else %}
+                                            <div class="w-12 h-12 bg-gray-200 rounded flex items-center justify-center">
+                                                <span class="text-gray-400 text-xs">{% trans 'No Image' %}</span>
+                                            </div>
+                                        {% endif %}
+                                        <div>
+                                            <p class="text-sm font-medium text-gray-800">{{ item.product_title }}</p>
+                                            <p class="text-xs text-gray-500">{% trans 'Qty:' %} {{ item.quantity }}</p>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                                {% if order.items.count > 3 %}
+                                    <span class="text-sm text-gray-500">
+                                        {% blocktrans %}and {{ order.items.count|add:"-3" }} more item{{ order.items.count|add:"-3"|pluralize }}{% endblocktrans %}
+                                    </span>
+                                {% endif %}
+                            </div>
+
+                            <div class="flex justify-between items-center">
+                                <div class="text-sm text-gray-600">
+                                    {% blocktrans %}{{ order.items.count }} item{{ order.items.count|pluralize }} • Last updated: {{ order.updated_at|date:"M d, Y" }}{% endblocktrans %}
+                                </div>
+                                <a href="{% url 'product_module:order_detail' order.order_id %}" class="bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition duration-200">
+                                    {% trans 'View Details' %}
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+
+            {% if page_obj.has_other_pages %}
+                <div class="flex justify-center mt-8">
+                    <nav class="flex items-center gap-2">
+                        {% if page_obj.has_previous %}
+                            <a href="?page=1" class="px-3 py-2 text-gray-500 hover:text-green-600">
+                                {% trans 'First' %}
+                            </a>
+                            <a href="?page={{ page_obj.previous_page_number }}" class="px-3 py-2 text-gray-500 hover:text-green-600">
+                                {% trans 'Previous' %}
+                            </a>
+                        {% endif %}
+
+                        <span class="px-4 py-2 bg-green-600 text-white rounded">
+                            {% blocktrans %}Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}{% endblocktrans %}
+                        </span>
+
+                        {% if page_obj.has_next %}
+                            <a href="?page={{ page_obj.next_page_number }}" class="px-3 py-2 text-gray-500 hover:text-green-600">
+                                {% trans 'Next' %}
+                            </a>
+                            <a href="?page={{ page_obj.paginator.num_pages }}" class="px-3 py-2 text-gray-500 hover:text-green-600">
+                                {% trans 'Last' %}
+                            </a>
+                        {% endif %}
+                    </nav>
+                </div>
+            {% endif %}
+
+        {% else %}
+            <div class="text-center py-20">
+                <div class="text-gray-400 text-8xl mb-6">📋</div>
+                <h2 class="text-2xl font-semibold text-gray-600 mb-4">
+                    {% trans 'No orders yet' %}
+                </h2>
+                <p class="text-gray-500 mb-8">
+                    {% trans 'Start shopping to see your order history here' %}
+                </p>
+                <a href="{% url 'product_module:product_list' %}" class="bg-green-600 text-white py-3 px-8 rounded-xl hover:bg-green-700 transition duration-200 font-semibold">
+                    {% trans 'Start Shopping' %}
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
