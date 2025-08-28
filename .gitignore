@@ -4,7 +4,3 @@ local_settings.py
 *.log
 *.pot
 *.pyc
-.env
-.env.local
-.env.production
-env/

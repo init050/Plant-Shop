@@ -1,17 +1,16 @@
-import os
 from pathlib import Path
-from django.core.management.utils import get_random_secret_key
+import os
+from decouple import config
+
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = os.getenv('SECRET_KEY', get_random_secret_key())
-DEBUG = os.getenv('DEBUG', 'False').lower() == 'true'
+SECRET_KEY = config('SECRET_KEY')
+DEBUG = config('DEBUG', default=False, cast=bool)
 
-allowed_hosts_env = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1')
-ALLOWED_HOSTS = [host.strip() for host in allowed_hosts_env.split(',')]
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '*'] if DEBUG else []
 
-
-
+# Application definition
 INSTALLED_APPS = [
     'daphne',
     'django.contrib.admin',
@@ -20,34 +19,22 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'channels',
     'django_render_partial',
     'home_module',
     'account_module',
     'product_module',
-    'contact_module',
     'article_module.apps.ArticleModuleConfig',
-    'site_module',
+    'chat_module',
     'crispy_tailwind',
     'phonenumber_field',
     'mptt',
     'taggit',
     'crispy_forms',
-    'chat_module',
-    'channels',
 ]
 
-
-
-ASGI_APPLICATION = 'Plant_Shop.asgi.application'
-
-CHANNEL_LAYERS = {
-    'default': {
-        'BACKEND': 'channels.layers.InMemoryChannelLayer',
-    },
-}
-
-CRISPY_ALLOWED_TEMPLATE_PACKS = "tailwind"
-CRISPY_TEMPLATE_PACK = "tailwind"
+CRISPY_ALLOWED_TEMPLATE_PACKS = 'tailwind'
+CRISPY_TEMPLATE_PACK = 'tailwind'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -64,7 +51,9 @@ ROOT_URLCONF = 'Plant_Shop.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates'],
+        'DIRS': [
+            BASE_DIR / 'templates',
+        ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -78,23 +67,26 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'Plant_Shop.wsgi.application'
+ASGI_APPLICATION = 'Plant_Shop.asgi.application' 
 
 AUTH_USER_MODEL = 'account_module.User'
 
-MEDIA_ROOT = BASE_DIR / 'uploads'
-MEDIA_URL = '/medias/'
-
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': config('DB_NAME'),
+        'USER': config('DB_USER'),
+        'PASSWORD': config('DB_PASSWORD'),
+        'HOST': config('DB_HOST'),
+        'PORT': config('DB_PORT'),
+        'OPTIONS': {
+            'connect_timeout': 10,
+        },
+        'CONN_MAX_AGE': 60,
     }
 }
 
-if os.getenv('DATABASE_URL'):
-    import dj_database_url
-    DATABASES['default'] = dj_database_url.parse(os.getenv('DATABASE_URL'))
-
+# Password validation
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
@@ -110,33 +102,40 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+# Internationalization
 LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
 
+# Static files (CSS, JavaScript, Images)
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [
     BASE_DIR / 'static',
 ]
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
+# Media files
+MEDIA_ROOT = BASE_DIR / 'uploads'
+MEDIA_URL = '/medias/'
+
+# Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-EMAIL_BACKEND = os.getenv('EMAIL_BACKEND', 'django.core.mail.backends.console.EmailBackend')
+# Email Configuration
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
+# Site settings  
 SITE_NAME = 'Plant Shop'
-if DEBUG:
-    SITE_URL = 'http://localhost:8000'
-else:
-    SITE_URL = os.getenv('SITE_URL', 'https://your-domain.com')
+SITE_URL = 'http://localhost:8000' if DEBUG else 'https://your-domain.com'
+DEFAULT_FROM_EMAIL = 'noreply@plantshop.local'
 
-DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'noreply@plantshop.local')
-
+# Authentication URLs
 LOGIN_URL = '/user/login/'
 LOGIN_REDIRECT_URL = '/'  
 LOGOUT_REDIRECT_URL = '/user/login/'  
 
+# Logging Configuration
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -159,3 +158,14 @@ LOGGING = {
         },
     },
 }
+
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels.layers.InMemoryChannelLayer', 
+    },
+}
+
+AUTHENTICATION_BACKENDS = [
+    'account_module.backends.EmailOrUsernameBackend',
+    'django.contrib.auth.backends.ModelBackend',
+]

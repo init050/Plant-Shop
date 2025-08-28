@@ -1,18 +1,24 @@
 {% extends 'base.html' %}
 {% load i18n %}
 
-{% block title %}{{ article.title }} - Plant Shop{% endblock %}
+{% block title %}
+    {{ article.title }} - {% trans 'Plant Shop' %}
+{% endblock %}
 
 {% block content %}
 <div class="min-h-screen bg-gradient-to-br from-green-50 via-white to-green-100 py-8">
     <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="mb-6">
             <nav class="flex items-center space-x-2 text-sm text-gray-600">
-                <a href="{% url 'home_page' %}" class="hover:text-green-600 transition duration-150 ease-in-out">Home</a>
+                <a href="{% url 'home_page' %}" class="hover:text-green-600 transition duration-150 ease-in-out">
+                    {% trans 'Home' %}
+                </a>
                 <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                     <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
                 </svg>
-                <a href="{% url 'article_module:list' %}" class="hover:text-green-600 transition duration-150 ease-in-out">Articles</a>
+                <a href="{% url 'article_module:list' %}" class="hover:text-green-600 transition duration-150 ease-in-out">
+                    {% trans 'Articles' %}
+                </a>
                 <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                     <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
                 </svg>
@@ -29,7 +35,9 @@
 
             <div class="p-8">
                 <header class="mb-8">
-                    <h1 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">{{ article.title }}</h1>
+                    <h1 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+                        {{ article.title }}
+                    </h1>
                     
                     <div class="flex items-center justify-between border-b border-gray-200 pb-4">
                         <div class="flex items-center space-x-4">
@@ -56,21 +64,25 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
                                 </svg>
-                                {{ article.view_count }} views
+                                {{ article.view_count }} {% trans 'views' %}
                             </span>
                             <span class="flex items-center">
                                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
                                 </svg>
-                                {{ comments.count }} comments
+                                {{ comments.count }} {% trans 'comments' %}
                             </span>
                         </div>
                     </div>
                 </header>
 
                 <div class="prose prose-lg max-w-none mb-12">
-                    <div class="text-xl text-gray-700 mb-6 font-medium">{{ article.summary }}</div>
-                    <div class="text-gray-800 leading-relaxed whitespace-pre-line">{{ article.content }}</div>
+                    <div class="text-xl text-gray-700 mb-6 font-medium">
+                        {{ article.summary }}
+                    </div>
+                    <div class="text-gray-800 leading-relaxed whitespace-pre-line">
+                        {{ article.content }}
+                    </div>
                 </div>
 
                 {% if user.is_authenticated and user == article.author %}
@@ -80,7 +92,7 @@
                                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                                 </svg>
-                                Edit Article
+                                {% trans 'Edit Article' %}
                             </a>
                         </div>
                     </div>
@@ -89,7 +101,9 @@
         </article>
 
         <section class="mt-12">
-            <h2 class="text-2xl font-bold text-gray-900 mb-8">Comments ({{ comments.count }})</h2>
+            <h2 class="text-2xl font-bold text-gray-900 mb-8">
+                {% trans 'Comments' %} ({{ comments.count }})
+            </h2>
 
             {% if user.is_authenticated %}
                 <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
@@ -97,7 +111,7 @@
                         {% csrf_token %}
                         <div class="mb-4">
                             <label for="{{ comment_form.content.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
-                                Add your comment
+                                {% trans 'Add your comment' %}
                             </label>
                             {{ comment_form.content }}
                         </div>
@@ -105,15 +119,17 @@
                             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
                             </svg>
-                            Post Comment
+                            {% trans 'Post Comment' %}
                         </button>
                     </form>
                 </div>
             {% else %}
                 <div class="bg-gray-50 rounded-xl p-6 mb-8 text-center">
-                    <p class="text-gray-600 mb-4">Please sign in to leave a comment</p>
+                    <p class="text-gray-600 mb-4">
+                        {% trans 'Please sign in to leave a comment' %}
+                    </p>
                     <a href="{% url 'account_module:login' %}" class="inline-flex items-center px-6 py-3 border border-transparent rounded-lg text-sm font-medium text-white bg-green-600 hover:bg-green-700 transition duration-150 ease-in-out">
-                        Sign In
+                        {% trans 'Sign In' %}
                     </a>
                 </div>
             {% endif %}
@@ -137,10 +153,10 @@
                                     <span class="text-sm text-gray-500">{{ comment.created_at|date:"M d, Y g:i A" }}</span>
                                 </div>
                                 <p class="text-gray-700 whitespace-pre-line">{{ comment.content }}</p>
-                                
+
                                 {% if user.is_authenticated %}
                                     <button onclick="toggleReplyForm({{ comment.id }})" class="mt-3 text-sm text-green-600 hover:text-green-700 font-medium">
-                                        Reply
+                                        {% trans 'Reply' %}
                                     </button>
                                 {% endif %}
 
@@ -149,14 +165,14 @@
                                         {% csrf_token %}
                                         <input type="hidden" name="parent_id" value="{{ comment.id }}">
                                         <div class="mb-3">
-                                            <textarea name="content" rows="3" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition duration-150 ease-in-out" placeholder="Write your reply..."></textarea>
+                                            <textarea name="content" rows="3" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition duration-150 ease-in-out" placeholder="{% trans 'Write your reply...' %}"></textarea>
                                         </div>
                                         <div class="flex space-x-3">
                                             <button type="submit" class="px-4 py-2 text-sm font-medium text-white bg-green-600 border border-transparent rounded-lg hover:bg-green-700 transition duration-150 ease-in-out">
-                                                Reply
+                                                {% trans 'Reply' %}
                                             </button>
                                             <button type="button" onclick="toggleReplyForm({{ comment.id }})" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition duration-150 ease-in-out">
-                                                Cancel
+                                                {% trans 'Cancel' %}
                                             </button>
                                         </div>
                                     </form>
@@ -196,8 +212,12 @@
                         <svg class="mx-auto h-16 w-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
                         </svg>
-                        <h3 class="mt-4 text-lg font-medium text-gray-900">No comments yet</h3>
-                        <p class="mt-2 text-gray-500">Be the first to share your thoughts about this article!</p>
+                        <h3 class="mt-4 text-lg font-medium text-gray-900">
+                            {% trans 'No comments yet' %}
+                        </h3>
+                        <p class="mt-2 text-gray-500">
+                            {% trans 'Be the first to share your thoughts about this article!' %}
+                        </p>
                     </div>
                 {% endfor %}
             </div>
@@ -205,7 +225,9 @@
 
         {% if related_articles %}
             <section class="mt-16">
-                <h2 class="text-2xl font-bold text-gray-900 mb-8">Related Articles</h2>
+                <h2 class="text-2xl font-bold text-gray-900 mb-8">
+                    {% trans 'Related Articles' %}
+                </h2>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                     {% for related_article in related_articles %}
                         <article class="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition duration-300 ease-in-out">
@@ -220,8 +242,12 @@
                                         {{ related_article.title }}
                                     </a>
                                 </h3>
-                                <p class="text-sm text-gray-600 line-clamp-2">{{ related_article.summary }}</p>
-                                <div class="mt-3 text-xs text-gray-500">{{ related_article.publish_date|date:"M d, Y" }}</div>
+                                <p class="text-sm text-gray-600 line-clamp-2">
+                                    {{ related_article.summary }}
+                                </p>
+                                <div class="mt-3 text-xs text-gray-500">
+                                    {{ related_article.publish_date|date:"M d, Y" }}
+                                </div>
                             </div>
                         </article>
                     {% endfor %}
@@ -232,9 +258,9 @@
 </div>
 
 <script>
-function toggleReplyForm(commentId) {
-    const form = document.getElementById('reply-form-' + commentId);
-    form.classList.toggle('hidden');
-}
+    function toggleReplyForm(commentId) {
+        const form = document.getElementById('reply-form-' + commentId);
+        form.classList.toggle('hidden');
+    }
 </script>
 {% endblock %}

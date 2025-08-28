@@ -1,9 +1,12 @@
 from django.core.management.base import BaseCommand
 from django.contrib.auth import get_user_model
-from article_module.models import Article
 from django.utils import timezone
 
+from article_module.models import Article
+
+
 User = get_user_model()
+
 
 class Command(BaseCommand):
     help = 'Create a test article for debugging'
@@ -17,10 +20,10 @@ class Command(BaseCommand):
                 'is_active': True,
             }
         )
-        
+
         if created:
             self.stdout.write(f'Created test user: {user.email}')
-        
+
         # Create a test article
         article, created = Article.objects.get_or_create(
             title='Test Article - Plant Care Tips',
@@ -46,7 +49,7 @@ Feed your plants during the growing season with a balanced fertilizer.
                 'publish_date': timezone.now(),
             }
         )
-        
+
         if created:
             self.stdout.write(
                 self.style.SUCCESS(f'Successfully created test article: "{article.title}"')
@@ -55,7 +58,7 @@ Feed your plants during the growing season with a balanced fertilizer.
             self.stdout.write(
                 self.style.WARNING(f'Test article already exists: "{article.title}"')
             )
-        
+
         # Create another test article
         article2, created = Article.objects.get_or_create(
             title='Gardening for Beginners',
@@ -81,7 +84,7 @@ Find a spot with good sunlight and access to water.
                 'publish_date': timezone.now(),
             }
         )
-        
+
         if created:
             self.stdout.write(
                 self.style.SUCCESS(f'Successfully created test article: "{article2.title}"')
@@ -90,7 +93,7 @@ Find a spot with good sunlight and access to water.
             self.stdout.write(
                 self.style.WARNING(f'Test article already exists: "{article2.title}"')
             )
-        
+
         # Show all articles
         all_articles = Article.objects.all()
         self.stdout.write(f'\nTotal articles in database: {all_articles.count()}')

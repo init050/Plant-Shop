@@ -1,38 +1,50 @@
-from django.http import HttpResponse
-from django.views import generic
+# Standard library imports
 import logging
-from django.contrib.auth import get_user_model
+from datetime import timedelta
+
+# Third-party imports
+from django.conf import settings
+from django.contrib import messages
+from django.contrib.auth import get_user_model, login
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.views import (
+    LoginView,
+    PasswordResetView,
+    PasswordResetConfirmView,
+    PasswordResetDoneView,
+    PasswordResetCompleteView
+)
+from django.http import HttpResponse
+from django.shortcuts import redirect, render, get_object_or_404
+from django.urls import reverse_lazy
+from django.utils import timezone
+from django.utils.decorators import method_decorator
+from django.utils.translation import gettext_lazy as _
+from django.views import generic
+from django.views.decorators.cache import cache_page
+from django.views.generic.edit import FormView
+
+# Local application imports
 from .models import User
 from .forms.registration import UserRegistrationForm, UserProfileForm
 from .forms.email_change import EmailChangeForm, OldEmailVerificationForm
-from django.views.generic.edit import FormView
-from .forms.auth import(
-    CustomAuthenticationForm, CustomPasswordChangeForm,
-    CustomPasswordResetForm, CustomSetPasswordForm
+from .forms.auth import (
+    CustomAuthenticationForm,
+    CustomPasswordChangeForm,
+    CustomPasswordResetForm,
+    CustomSetPasswordForm
 )
 from .services.email_verification import EmailVerificationService
 from .services.email_change_service import EmailChangeService
-from django.contrib import messages
-from django.utils.translation import gettext_lazy as _
-from django.shortcuts import redirect, render
-from django.contrib.auth import login
-from django.contrib.auth.mixins import LoginRequiredMixin
-from django.urls import reverse_lazy
-from django.utils.decorators import method_decorator
-from django.views.decorators.cache import cache_page
-from django.contrib.auth.views import (
-    PasswordResetView, PasswordResetConfirmView,
-    PasswordResetDoneView, PasswordResetCompleteView
-)
-from django.conf import settings
-from django.shortcuts import get_object_or_404
-from django.utils import timezone
-from datetime import timedelta
+from .utils.ip_retriever import get_client_ip
+
 
 logger = logging.getLogger(__name__)
 user = get_user_model()
 
+
 class BaseViewMixin:
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['current_page'] = self.request.resolver_match.url_name
@@ -41,7 +53,7 @@ class BaseViewMixin:
     def handle_exception(self, exc):
         logger.error(f'Error in {self.__class__.__name__}: {str(exc)}')
         return super().handle_exception(exc)
-    
+
 
 class UserRegistrationView(generic.CreateView):
     model = User
@@ -78,10 +90,6 @@ class UserRegistrationView(generic.CreateView):
             _('Registration failed. Please check the form and try again.')
         )
         return super().form_invalid(form)
-
-
-from django.contrib.auth.views import LoginView
-from .utils.ip_retriever import get_client_ip
 
 
 class CustomLoginView(LoginView):
@@ -122,7 +130,7 @@ class CustomLoginView(LoginView):
         return super().form_valid(form)
 
     def form_invalid(self, form):
-        messages.error(self.request, _('Invalid email or password.'))
+        messages.error(self.request, _('Invalid email or username or password.'))
         return super().form_invalid(form)
 
 
@@ -219,7 +227,6 @@ class PasswordChangeView(LoginRequiredMixin, FormView):
         kwargs['user'] = self.request.user 
         return kwargs
     
-
     def form_valid(self, form):
         form.save()
         messages.success(self.request, _('Password changed successfully'))
@@ -245,10 +252,8 @@ class EmailVerificationView(generic.TemplateView):
         return context
     
     def _can_resend_email(self, user):
-        if not user:
-            return False
-        
-        if user.is_email_verified:
+        # This logic prevents users from spamming the email sending service.
+        if not user or user.is_email_verified:
             return False
             
         last_attempt = self.request.session.get('last_verification_email_sent')
@@ -297,13 +302,15 @@ class EmailVerificationConfirmView(generic.View):
         success, message = EmailVerificationService.verify(token)
         
         if success:
-            # Check if this is part of email change process
+            # Check if this verification is part of an email change process.
+            # If so, we need to finalize the change.
             user = request.user if request.user.is_authenticated else None
             if user and user.old_email_verified and user.pending_email:
                 EmailChangeService.complete_email_change(user)
                 messages.success(request, _('Email change completed successfully.'))
                 return redirect('account_module:profile')
             
+            # Standard email verification success.
             messages.success(request, message)
             if 'pending_verification_user_id' in request.session:
                 del request.session['pending_verification_user_id']
@@ -321,13 +328,6 @@ class CustomPasswordResetView(PasswordResetView):
     email_template_name = 'account_module/password_reset_email.txt'  
     subject_template_name = 'account_module/password_reset_subject.txt'
     success_url = reverse_lazy('account_module:password_reset_done')
-
-    def form_valid(self, form):
-        messages.success(
-            self.request,
-            _('If an account exists with this email, you will receive password reset instructions.')
-        )
-        return super().form_valid(form)
 
     def form_valid(self, form):
         messages.success(

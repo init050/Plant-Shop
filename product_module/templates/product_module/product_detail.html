@@ -1,0 +1,216 @@
+{% extends 'base.html' %}
+{% load i18n static %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-12">
+    <div class="container mx-auto px-4">
+
+        <nav class="mb-8">
+            <ol class="flex items-center space-x-2 text-sm text-gray-500">
+                <li>
+                    <a href="{% url 'product_module:product_list' %}" class="hover:text-green-600">
+                        {% trans 'Products' %}
+                    </a>
+                </li>
+                <li>
+                    <span>/</span>
+                </li>
+                <li class="text-gray-800">{{ product.title }}</li>
+            </ol>
+        </nav>
+
+        <div class="bg-white rounded-2xl shadow-xl overflow-hidden">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 p-8">
+
+                <div class="space-y-6">
+                    <div class="relative">
+                        {% if product.image %}
+                            <img src="{{ product.image.url }}" alt="{{ product.title }}" class="w-full h-96 object-cover rounded-xl">
+                        {% else %}
+                            <div class="w-full h-96 bg-gray-200 rounded-xl flex items-center justify-center">
+                                <span class="text-gray-400 text-xl">{% trans 'No Image Available' %}</span>
+                            </div>
+                        {% endif %}
+
+                        {% if product.final_price != product.price %}
+                            <span class="absolute top-4 right-4 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-semibold">
+                                {% trans 'Sale' %}
+                            </span>
+                        {% endif %}
+                    </div>
+
+                    {% if product.gallery.exists %}
+                        <div class="grid grid-cols-4 gap-2">
+                            {% for gallery_item in product.gallery.all %}
+                                <img src="{{ gallery_item.image.url }}" alt="{{ gallery_item.alt_text }}"
+                                     class="w-full h-20 object-cover rounded-lg cursor-pointer hover:opacity-75 transition duration-200">
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="space-y-6">
+                    <div>
+                        {% if product.is_featured %}
+                            <span class="inline-block bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-sm font-semibold mb-4">
+                                ⭐ {% trans 'Featured Product' %}
+                            </span>
+                        {% endif %}
+
+                        <h1 class="text-3xl font-bold text-gray-800 mb-4">{{ product.title }}</h1>
+
+                        <div class="flex items-center gap-4 mb-6">
+                            {% if product.final_price != product.price %}
+                                <span class="text-3xl font-bold text-green-600">${{ product.final_price }}</span>
+                                <span class="text-xl text-gray-500 line-through">${{ product.price }}</span>
+                                {% with product.discounts.first as discount %}
+                                    {% if discount %}
+                                        <span class="bg-red-100 text-red-800 px-2 py-1 rounded text-sm">
+                                            {{ discount.value }}{% if discount.discount_type == 'percentage' %}%{% else %} ${% endif %} {% trans 'OFF' %}
+                                        </span>
+                                    {% endif %}
+                                {% endwith %}
+                            {% else %}
+                                <span class="text-3xl font-bold text-gray-800">${{ product.price }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4 text-sm">
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <span class="text-gray-600">{% trans 'Size:' %}</span>
+                            <span class="font-semibold text-gray-800 capitalize ml-2">{{ product.get_size_display }}</span>
+                        </div>
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <span class="text-gray-600">{% trans 'Color:' %}</span>
+                            <div class="flex items-center gap-2 mt-1">
+                                <span class="w-4 h-4 rounded-full border" style="background-color: {{ product.color }};"></span>
+                                <span class="font-semibold text-gray-800 capitalize">{{ product.get_color_display }}</span>
+                            </div>
+                        </div>
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <span class="text-gray-600">{% trans 'Stock:' %}</span>
+                            <span class="font-semibold text-gray-800 ml-2">
+                                {{ product.stock_quantity }} {% trans 'available' %}
+                            </span>
+                        </div>
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <span class="text-gray-600">{% trans 'Categories:' %}</span>
+                            <div class="mt-1">
+                                {% for category in product.category.all %}
+                                    <span class="inline-block bg-green-100 text-green-800 px-2 py-1 rounded text-xs mr-1">
+                                        {{ category.title }}
+                                    </span>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-800 mb-3">
+                            {% trans 'Description' %}
+                        </h3>
+                        <div class="text-gray-600 leading-relaxed">
+                            <p class="mb-4">{{ product.short_description }}</p>
+                            <p>{{ product.description|linebreaks }}</p>
+                        </div>
+                    </div>
+
+                    {% if user.is_authenticated %}
+                        {% if product.is_in_stock %}
+                            <form method="post" action="{% url 'product_module:add_to_cart' product.id %}" class="space-y-4">
+                                {% csrf_token %}
+                                <div class="flex items-center gap-4">
+                                    <label class="text-sm font-medium text-gray-700">
+                                        {% trans 'Quantity:' %}
+                                    </label>
+                                    {{ add_to_cart_form.quantity }}
+                                </div>
+                                <button type="submit" class="w-full bg-green-600 text-white py-3 px-6 rounded-xl hover:bg-green-700 transition duration-200 font-semibold text-lg">
+                                    🛒 {% trans 'Add to Cart' %}
+                                </button>
+                            </form>
+                        {% else %}
+                            <div class="bg-red-50 border border-red-200 rounded-xl p-4 text-center">
+                                <span class="text-red-600 font-semibold">
+                                    ❌ {% trans 'Out of Stock' %}
+                                </span>
+                            </div>
+                        {% endif %}
+                    {% else %}
+                        <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 text-center">
+                            <p class="text-blue-800 mb-3">
+                                {% trans 'Please login to add items to your cart' %}
+                            </p>
+                            <a href="{% url 'account_module:login' %}" class="bg-blue-600 text-white py-2 px-6 rounded-lg hover:bg-blue-700 transition duration-200">
+                                {% trans 'Login' %}
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        {% if related_products %}
+            <div class="mt-16">
+                <h2 class="text-2xl font-bold text-gray-800 mb-8 text-center">
+                    {% trans 'Related Products' %}
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    {% for related_product in related_products %}
+                        <div class="bg-white rounded-xl shadow-lg hover:shadow-xl transition duration-300 overflow-hidden">
+                            <div class="relative">
+                                {% if related_product.image %}
+                                    <img src="{{ related_product.image.url }}" alt="{{ related_product.title }}" class="w-full h-40 object-cover">
+                                {% else %}
+                                    <div class="w-full h-40 bg-gray-200 flex items-center justify-center">
+                                        <span class="text-gray-400 text-sm">{% trans 'No Image' %}</span>
+                                    </div>
+                                {% endif %}
+
+                                {% if related_product.final_price != related_product.price %}
+                                    <span class="absolute top-2 right-2 bg-red-500 text-white px-2 py-1 rounded-full text-xs font-semibold">
+                                        {% trans 'Sale' %}
+                                    </span>
+                                {% endif %}
+                            </div>
+
+                            <div class="p-4">
+                                <h3 class="font-semibold text-gray-800 mb-2">{{ related_product.title }}</h3>
+                                <div class="text-right">
+                                    {% if related_product.final_price != related_product.price %}
+                                        <span class="text-lg font-bold text-green-600">${{ related_product.final_price }}</span>
+                                        <span class="text-sm text-gray-500 line-through ml-1">${{ related_product.price }}</span>
+                                    {% else %}
+                                        <span class="text-lg font-bold text-gray-800">${{ related_product.price }}</span>
+                                    {% endif %}
+                                </div>
+                                <a href="{{ related_product.get_absolute_url }}" class="block w-full text-center bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition duration-200 mt-3">
+                                    {% trans 'View Details' %}
+                                </a>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+    // Simple image gallery functionality
+    document.addEventListener('DOMContentLoaded', function () {
+        const galleryImages = document.querySelectorAll('.grid img[src*="gallery"]');
+        const mainImage = document.querySelector('img[alt="{{ product.title }}"]');
+
+        galleryImages.forEach(img => {
+            img.addEventListener('click', function () {
+                if (mainImage) {
+                    mainImage.src = this.src;
+                }
+            });
+        });
+    });
+</script>
+
+{% endblock %}

@@ -1,32 +1,44 @@
 {% extends 'base.html' %}
 {% load i18n %}
 
-{% block title %}Write Article - Plant Shop{% endblock %}
+{% block title %}
+    {% trans 'Write Article - Plant Shop' %}
+{% endblock %}
 
 {% block content %}
 <div class="min-h-screen bg-gradient-to-br from-green-50 via-white to-green-100 py-8">
     <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="mb-8">
             <nav class="flex items-center space-x-2 text-sm text-gray-600 mb-6">
-                <a href="{% url 'home_page' %}" class="hover:text-green-600 transition duration-150 ease-in-out">Home</a>
+                <a href="{% url 'home_page' %}" class="hover:text-green-600 transition duration-150 ease-in-out">
+                    {% trans 'Home' %}
+                </a>
                 <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                     <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
                 </svg>
-                <a href="{% url 'article_module:list' %}" class="hover:text-green-600 transition duration-150 ease-in-out">Articles</a>
+                <a href="{% url 'article_module:list' %}" class="hover:text-green-600 transition duration-150 ease-in-out">
+                    {% trans 'Articles' %}
+                </a>
                 <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                     <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
                 </svg>
-                <span class="text-gray-900">Write Article</span>
+                <span class="text-gray-900">
+                    {% trans 'Write Article' %}
+                </span>
             </nav>
-            
+
             <div class="text-center">
                 <div class="mx-auto h-16 w-16 bg-green-100 rounded-full flex items-center justify-center mb-6">
                     <svg class="h-8 w-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
                     </svg>
                 </div>
-                <h1 class="text-3xl font-bold text-gray-900">Write New Article</h1>
-                <p class="mt-2 text-gray-600">Share your plant knowledge with the community</p>
+                <h1 class="text-3xl font-bold text-gray-900">
+                    {% trans 'Write New Article' %}
+                </h1>
+                <p class="mt-2 text-gray-600">
+                    {% trans 'Share your plant knowledge with the community' %}
+                </p>
             </div>
         </div>
 
@@ -62,20 +74,24 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
                     </svg>
                 </div>
-                <h3 class="text-lg font-semibold text-red-900 mb-2">Article Submission Limit Reached</h3>
-                <p class="text-red-700 mb-4">You can only submit one article per 24 hours. Please wait before creating another article.</p>
+                <h3 class="text-lg font-semibold text-red-900 mb-2">
+                    {% trans 'Article Submission Limit Reached' %}
+                </h3>
+                <p class="text-red-700 mb-4">
+                    {% trans 'You can only submit one article per 24 hours. Please wait before creating another article.' %}
+                </p>
                 <div class="flex justify-center space-x-4">
                     <a href="{% url 'article_module:my_articles' %}" class="inline-flex items-center px-4 py-2 border border-red-300 rounded-lg text-sm font-medium text-red-700 bg-red-50 hover:bg-red-100 transition duration-150 ease-in-out">
                         <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                         </svg>
-                        View My Articles
+                        {% trans 'View My Articles' %}
                     </a>
                     <a href="{% url 'article_module:list' %}" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition duration-150 ease-in-out">
                         <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
                         </svg>
-                        Back to Articles
+                        {% trans 'Back to Articles' %}
                     </a>
                 </div>
             </div>
@@ -84,10 +100,10 @@
                 <div class="p-8">
                     <form method="post" enctype="multipart/form-data" class="space-y-6">
                         {% csrf_token %}
-                        
+
                         <div>
                             <label for="{{ form.title.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
-                                Article Title *
+                                {% trans 'Article Title' %} *
                             </label>
                             {{ form.title }}
                             {% if form.title.errors %}
@@ -97,12 +113,14 @@
                                     {% endfor %}
                                 </div>
                             {% endif %}
-                            <p class="mt-1 text-xs text-gray-500">Choose a clear, descriptive title for your article (minimum 5 characters)</p>
+                            <p class="mt-1 text-xs text-gray-500">
+                                {% trans 'Choose a clear, descriptive title for your article (minimum 5 characters)' %}
+                            </p>
                         </div>
 
                         <div>
                             <label for="{{ form.summary.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
-                                Summary *
+                                {% trans 'Summary' %} *
                             </label>
                             {{ form.summary }}
                             {% if form.summary.errors %}
@@ -112,12 +130,14 @@
                                     {% endfor %}
                                 </div>
                             {% endif %}
-                            <p class="mt-1 text-xs text-gray-500">Provide a brief overview of your article (minimum 10 characters)</p>
+                            <p class="mt-1 text-xs text-gray-500">
+                                {% trans 'Provide a brief overview of your article (minimum 10 characters)' %}
+                            </p>
                         </div>
 
                         <div>
                             <label for="{{ form.image.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
-                                Featured Image (Optional)
+                                {% trans 'Featured Image (Optional)' %}
                             </label>
                             {{ form.image }}
                             {% if form.image.errors %}
@@ -127,12 +147,14 @@
                                     {% endfor %}
                                 </div>
                             {% endif %}
-                            <p class="mt-1 text-xs text-gray-500">Upload an image to make your article more engaging</p>
+                            <p class="mt-1 text-xs text-gray-500">
+                                {% trans 'Upload an image to make your article more engaging' %}
+                            </p>
                         </div>
 
                         <div>
                             <label for="{{ form.content.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
-                                Article Content *
+                                {% trans 'Article Content' %} *
                             </label>
                             {{ form.content }}
                             {% if form.content.errors %}
@@ -142,7 +164,9 @@
                                     {% endfor %}
                                 </div>
                             {% endif %}
-                            <p class="mt-1 text-xs text-gray-500">Write your full article content here (minimum 50 characters)</p>
+                            <p class="mt-1 text-xs text-gray-500">
+                                {% trans 'Write your full article content here (minimum 50 characters)' %}
+                            </p>
                         </div>
 
                         {% if form.non_field_errors %}
@@ -164,9 +188,13 @@
                                         </svg>
                                     </div>
                                     <div class="ml-3">
-                                        <h3 class="text-sm font-medium text-blue-800">Review Process</h3>
+                                        <h3 class="text-sm font-medium text-blue-800">
+                                            {% trans 'Review Process' %}
+                                        </h3>
                                         <div class="mt-2 text-sm text-blue-700">
-                                            <p>Your article will be submitted for review and published after admin approval. You can submit one article every 24 hours.</p>
+                                            <p>
+                                                {% trans 'Your article will be submitted for review and published after admin approval. You can submit one article every 24 hours.' %}
+                                            </p>
                                         </div>
                                     </div>
                                 </div>
@@ -180,15 +208,15 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
                                     </svg>
                                     {% if user.is_staff or user.is_superuser %}
-                                        Publish Article
+                                        {% trans 'Publish Article' %}
                                     {% else %}
-                                        Submit for Review
+                                        {% trans 'Submit for Review' %}
                                     {% endif %}
                                 </span>
                             </button>
                             
                             <a href="{% url 'article_module:list' %}" class="flex-1 py-3 px-6 border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition duration-150 ease-in-out text-center">
-                                Cancel
+                                {% trans 'Cancel' %}
                             </a>
                         </div>
                     </form>
@@ -196,24 +224,30 @@
             </div>
 
             <div class="mt-8 bg-gray-50 rounded-xl p-6">
-                <h3 class="text-lg font-medium text-gray-900 mb-4">Writing Tips</h3>
+                <h3 class="text-lg font-medium text-gray-900 mb-4">
+                    {% trans 'Writing Tips' %}
+                </h3>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm text-gray-600">
                     <div>
-                        <h4 class="font-medium text-gray-800 mb-2">Content Guidelines</h4>
+                        <h4 class="font-medium text-gray-800 mb-2">
+                            {% trans 'Content Guidelines' %}
+                        </h4>
                         <ul class="space-y-1">
-                            <li>• Use clear, descriptive titles</li>
-                            <li>• Write engaging introductions</li>
-                            <li>• Include practical tips and advice</li>
-                            <li>• Use proper grammar and spelling</li>
+                            <li>• {% trans 'Use clear, descriptive titles' %}</li>
+                            <li>• {% trans 'Write engaging introductions' %}</li>
+                            <li>• {% trans 'Include practical tips and advice' %}</li>
+                            <li>• {% trans 'Use proper grammar and spelling' %}</li>
                         </ul>
                     </div>
                     <div>
-                        <h4 class="font-medium text-gray-800 mb-2">Image Recommendations</h4>
+                        <h4 class="font-medium text-gray-800 mb-2">
+                            {% trans 'Image Recommendations' %}
+                        </h4>
                         <ul class="space-y-1">
-                            <li>• Use high-quality, relevant images</li>
-                            <li>• Ensure images are plant-related</li>
-                            <li>• Recommended size: 1200x800 pixels</li>
-                            <li>• Supported formats: JPG, PNG</li>
+                            <li>• {% trans 'Use high-quality, relevant images' %}</li>
+                            <li>• {% trans 'Ensure images are plant-related' %}</li>
+                            <li>• {% trans 'Recommended size: 1200x800 pixels' %}</li>
+                            <li>• {% trans 'Supported formats: JPG, PNG' %}</li>
                         </ul>
                     </div>
                 </div>
@@ -222,41 +256,4 @@
     </div>
 </div>
 
-    
-                            </span>
-                        </button>
-                        
-                        <a href="{% url 'article_module:list' %}" class="flex-1 py-3 px-6 border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition duration-150 ease-in-out text-center">
-                            Cancel
-                        </a>
-                    </div>
-                </form>
-            </div>
-        </div>
-
-        <div class="mt-8 bg-gray-50 rounded-xl p-6">
-            <h3 class="text-lg font-medium text-gray-900 mb-4">Writing Tips</h3>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm text-gray-600">
-                <div>
-                    <h4 class="font-medium text-gray-800 mb-2">Content Guidelines</h4>
-                    <ul class="space-y-1">
-                        <li>• Use clear, descriptive titles</li>
-                        <li>• Write engaging introductions</li>
-                        <li>• Include practical tips and advice</li>
-                        <li>• Use proper grammar and spelling</li>
-                    </ul>
-                </div>
-                <div>
-                    <h4 class="font-medium text-gray-800 mb-2">Image Recommendations</h4>
-                    <ul class="space-y-1">
-                        <li>• Use high-quality, relevant images</li>
-                        <li>• Ensure images are plant-related</li>
-                        <li>• Recommended size: 1200x800 pixels</li>
-                        <li>• Supported formats: JPG, PNG</li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
 {% endblock %}

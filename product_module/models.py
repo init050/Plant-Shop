@@ -1,11 +1,13 @@
+import uuid
+
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
 from django.utils.text import slugify
 from django.urls import reverse
 from django.core.validators import MinValueValidator, MaxValueValidator
+
 from account_module.models import User
-import uuid
 
 
 class ProductCategory(models.Model):
@@ -13,7 +15,13 @@ class ProductCategory(models.Model):
     url_title = models.CharField(_('URL Title Category'), max_length=200, db_index=True)
     description = models.TextField(_('Description'), blank=True, null=True)
     image = models.ImageField(_('Category Image'), upload_to='images/categories/', blank=True, null=True)
-    parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='children')
+    parent = models.ForeignKey(
+        'self',
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name='children',
+    )
     is_active = models.BooleanField(_('Active Category'), default=True)
     is_delete = models.BooleanField(_('Delete category'), default=False)
     created_at = models.DateTimeField(_('Created At'), auto_now_add=True)
@@ -22,7 +30,9 @@ class ProductCategory(models.Model):
     class Meta:
         verbose_name = _('Product Category')
         verbose_name_plural = _('Product Categories')
-        ordering = ['title']
+        ordering = [
+            'title',
+        ]
 
     def __str__(self):
         return f'{self.title}'
@@ -42,7 +52,7 @@ class Product(models.Model):
         ('medium', _('Medium')),
         ('large', _('Large')),
     ]
-    
+
     COLOR_CHOICES = [
         ('white', _('White')),
         ('black', _('Black')),
@@ -55,16 +65,56 @@ class Product(models.Model):
     ]
 
     title = models.CharField(_('Product'), max_length=80, db_index=True)
-    category = models.ManyToManyField(ProductCategory, related_name='products', verbose_name=_('Product Categories'))
-    image = models.ImageField(_('Product Photo'), upload_to='images/products', null=True, blank=True)
-    gallery = models.ManyToManyField('ProductGallery', blank=True, verbose_name=_('Product Gallery'))
-    price = models.DecimalField(_('Price'), max_digits=10, decimal_places=2, validators=[MinValueValidator(0)])
-    size = models.CharField(_('Size'), max_length=10, choices=SIZE_CHOICES, default='medium')
-    color = models.CharField(_('Color'), max_length=20, choices=COLOR_CHOICES, default='terracotta')
+    category = models.ManyToManyField(
+        ProductCategory,
+        related_name='products',
+        verbose_name=_('Product Categories'),
+    )
+    image = models.ImageField(
+        _('Product Photo'),
+        upload_to='images/products',
+        null=True,
+        blank=True,
+    )
+    gallery = models.ManyToManyField(
+        'ProductGallery',
+        blank=True,
+        verbose_name=_('Product Gallery'),
+    )
+    price = models.DecimalField(
+        _('Price'),
+        max_digits=10,
+        decimal_places=2,
+        validators=[MinValueValidator(0)],
+    )
+    size = models.CharField(
+        _('Size'),
+        max_length=10,
+        choices=SIZE_CHOICES,
+        default='medium',
+    )
+    color = models.CharField(
+        _('Color'),
+        max_length=20,
+        choices=COLOR_CHOICES,
+        default='terracotta',
+    )
     stock_quantity = models.PositiveIntegerField(_('Stock Quantity'), default=0)
-    short_description = models.CharField(_('Short Description'), max_length=350, null=True, db_index=True)
+    short_description = models.CharField(
+        _('Short Description'),
+        max_length=350,
+        null=True,
+        db_index=True,
+    )
     description = models.TextField(_('Description'), db_index=True)
-    slug = models.SlugField(_('URL Title'), max_length=200, default='', blank=True, unique=True, db_index=True)
+    slug = models.SlugField(
+        _('URL Title'),
+        max_length=200,
+        default='',
+        blank=True,
+        unique=True,
+        db_index=True,
+    )
     is_active = models.BooleanField(_('Active Product'), default=True)
     is_delete = models.BooleanField(_('Delete Product'), default=False)
     is_featured = models.BooleanField(_('Featured Product'), default=False)
@@ -74,7 +124,9 @@ class Product(models.Model):
     class Meta:
         verbose_name = _('Product')
         verbose_name_plural = _('Products')
-        ordering = ['-created_at']
+        ordering = [
+            '-created_at',
+        ]
 
     def __str__(self):
         return f'{self.title} - ${self.price}'
@@ -93,12 +145,13 @@ class Product(models.Model):
 
     @property
     def final_price(self):
+        # Calculate final price with active discounts
         active_discount = self.discounts.filter(
             is_active=True,
             start_date__lte=timezone.now(),
             end_date__gte=timezone.now()
         ).first()
-        
+
         if active_discount:
             if active_discount.discount_type == 'percentage':
                 discount_amount = (self.price * active_discount.value) / 100
@@ -128,43 +181,67 @@ class ProductDiscount(models.Model):
         ('fixed', _('Fixed Amount')),
     ]
 
-    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='discounts', verbose_name=_('Product'))
+    product = models.ForeignKey(
+        Product,
+        on_delete=models.CASCADE,
+        related_name='discounts',
+        verbose_name=_('Product'),
+    )
     title = models.CharField(_('Discount Title'), max_length=100)
-    discount_type = models.CharField(_('Discount Type'), max_length=10, choices=DISCOUNT_TYPES)
-    value = models.DecimalField(_('Discount Value'), max_digits=10, decimal_places=2, validators=[MinValueValidator(0)])
-    start_date = models.DateTimeField(_('Start Date'))
-    end_date = models.DateTimeField(_('End Date'))
+    discount_type = models.CharField(
+        _('Discount Type'),
+        max_length=10,
+        choices=DISCOUNT_TYPES,
+    )
+    value = models.DecimalField(
+        _('Discount Value'),
+        max_digits=10,
+        decimal_places=2,
+        validators=[MinValueValidator(0)],
+    )
+    start_date = models.DateTimeField(_('Start Date'), null=True, blank=True)
+    end_date = models.DateTimeField(_('End Date'), null=True, blank=True)
     is_active = models.BooleanField(_('Active'), default=True)
     created_at = models.DateTimeField(_('Created At'), auto_now_add=True)
 
     class Meta:
         verbose_name = _('Product Discount')
         verbose_name_plural = _('Product Discounts')
-        ordering = ['-created_at']
+        ordering = [
+            '-created_at',
+        ]
 
     def __str__(self):
         return f'{self.title} - {self.product.title}'
 
     def clean(self):
         from django.core.exceptions import ValidationError
-        if self.start_date >= self.end_date:
+        if self.start_date and self.end_date and self.start_date >= self.end_date:
             raise ValidationError(_('End date must be after start date'))
-        
+
         if self.discount_type == 'percentage' and self.value > 100:
             raise ValidationError(_('Percentage discount cannot exceed 100%'))
 
     def save(self, *args, **kwargs):
-        if timezone.now() > self.end_date:
+        # Auto-deactivate expired discounts only if both dates exist
+        if self.start_date and self.end_date and timezone.now() > self.end_date:
             self.is_active = False
         super().save(*args, **kwargs)
 
     @property
     def is_expired(self):
+        if not self.end_date:
+            return False
         return timezone.now() > self.end_date
 
 
 class Cart(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='cart', verbose_name=_('User'))
+    user = models.OneToOneField(
+        User,
+        on_delete=models.CASCADE,
+        related_name='cart',
+        verbose_name=_('User'),
+    )
     created_at = models.DateTimeField(_('Created At'), auto_now_add=True)
     updated_at = models.DateTimeField(_('Updated At'), auto_now=True)
 
@@ -185,16 +262,32 @@ class Cart(models.Model):
 
 
 class CartItem(models.Model):
-    cart = models.ForeignKey(Cart, on_delete=models.CASCADE, related_name='items', verbose_name=_('Cart'))
-    product = models.ForeignKey(Product, on_delete=models.CASCADE, verbose_name=_('Product'))
-    quantity = models.PositiveIntegerField(_('Quantity'), default=1, validators=[MinValueValidator(1)])
+    cart = models.ForeignKey(
+        Cart,
+        on_delete=models.CASCADE,
+        related_name='items',
+        verbose_name=_('Cart'),
+    )
+    product = models.ForeignKey(
+        Product,
+        on_delete=models.CASCADE,
+        verbose_name=_('Product'),
+    )
+    quantity = models.PositiveIntegerField(
+        _('Quantity'),
+        default=1,
+        validators=[MinValueValidator(1)],
+    )
     created_at = models.DateTimeField(_('Created At'), auto_now_add=True)
     updated_at = models.DateTimeField(_('Updated At'), auto_now=True)
 
     class Meta:
         verbose_name = _('Cart Item')
         verbose_name_plural = _('Cart Items')
-        unique_together = ['cart', 'product']
+        unique_together = [
+            'cart',
+            'product',
+        ]
 
     def __str__(self):
         return f'{self.product.title} x {self.quantity}'
@@ -213,9 +306,24 @@ class Order(models.Model):
         ('cancelled', _('Cancelled')),
     ]
 
-    order_id = models.UUIDField(_('Order ID'), default=uuid.uuid4, editable=False, unique=True)
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='orders', verbose_name=_('User'))
-    status = models.CharField(_('Status'), max_length=20, choices=STATUS_CHOICES, default='pending')
+    order_id = models.UUIDField(
+        _('Order ID'),
+        default=uuid.uuid4,
+        editable=False,
+        unique=True,
+    )
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='orders',
+        verbose_name=_('User'),
+    )
+    status = models.CharField(
+        _('Status'),
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default='pending',
+    )
     total_amount = models.DecimalField(_('Total Amount'), max_digits=10, decimal_places=2)
     shipping_address = models.TextField(_('Shipping Address'))
     phone_number = models.CharField(_('Phone Number'), max_length=20)
@@ -226,7 +334,9 @@ class Order(models.Model):
     class Meta:
         verbose_name = _('Order')
         verbose_name_plural = _('Orders')
-        ordering = ['-created_at']
+        ordering = [
+            '-created_at',
+        ]
 
     def __str__(self):
         return f'Order {self.order_id} - {self.user.email}'
@@ -236,8 +346,17 @@ class Order(models.Model):
 
 
 class OrderItem(models.Model):
-    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='items', verbose_name=_('Order'))
-    product = models.ForeignKey(Product, on_delete=models.CASCADE, verbose_name=_('Product'))
+    order = models.ForeignKey(
+        Order,
+        on_delete=models.CASCADE,
+        related_name='items',
+        verbose_name=_('Order'),
+    )
+    product = models.ForeignKey(
+        Product,
+        on_delete=models.CASCADE,
+        verbose_name=_('Product'),
+    )
     quantity = models.PositiveIntegerField(_('Quantity'))
     price = models.DecimalField(_('Price'), max_digits=10, decimal_places=2)
     # Store product details at time of order for historical accuracy
@@ -260,8 +379,18 @@ class OrderItem(models.Model):
 class ProductVisit(models.Model):
     ip_address = models.GenericIPAddressField(_('IP Address'))
     timestamp = models.DateTimeField(_('Timestamp'), auto_now_add=True)
-    product = models.ForeignKey(Product, on_delete=models.CASCADE, verbose_name=_('Product'))
-    user = models.ForeignKey(User, null=True, blank=True, on_delete=models.CASCADE, verbose_name=_('User'))
+    product = models.ForeignKey(
+        Product,
+        on_delete=models.CASCADE,
+        verbose_name=_('Product'),
+    )
+    user = models.ForeignKey(
+        User,
+        null=True,
+        blank=True,
+        on_delete=models.CASCADE,
+        verbose_name=_('User'),
+    )
 
     class Meta:
         verbose_name = _('Product Visit')

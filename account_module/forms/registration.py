@@ -1,11 +1,12 @@
 from django import forms
+from django.db import transaction
 from django.forms import ModelForm
 from django.utils.translation import gettext_lazy as _
-from django.db import transaction
 from phonenumber_field.formfields import PhoneNumberField
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Row, Column, Div, Submit
-from .. models import User
+
+from ..models import User
 from .validators import StrongPasswordValidator, AvatarValidator
 
 
@@ -19,7 +20,7 @@ class UserRegistrationForm(ModelForm):
         validators=[StrongPasswordValidator()],
         help_text=_('Include at least one uppercase letter, one number, and one special character.')
     )
-    password2 = forms.CharField( 
+    password2 = forms.CharField(
         label=_('Confirm Password'),
         widget=forms.PasswordInput(render_value=False)
     )
@@ -40,8 +41,8 @@ class UserRegistrationForm(ModelForm):
         model = User
         fields = ['email', 'username', 'phone_number', 'avatar']
         widgets = {
-            'email':forms.EmailInput(attrs={'placeholder' : 'plant@example.com'}),
-            'username':forms.TextInput(attrs={'placeholder': _('username')})
+            'email': forms.EmailInput(attrs={'placeholder': 'plant@example.com'}),
+            'username': forms.TextInput(attrs={'placeholder': _('username')})
         }
 
     def __init__(self, *args, **kwargs):
@@ -64,7 +65,10 @@ class UserRegistrationForm(ModelForm):
                 Column('phone_number', css_class='form-group col-md-6'),
                 css_class='form-row'
             ),
-            Div(Submit('submit', _('Register')), css_class='mt-3 text-right')
+            Div(
+                Submit('submit', _('Register')),
+                css_class='mt-3 text-right'
+            )
         )
 
     def clean(self):
@@ -73,10 +77,12 @@ class UserRegistrationForm(ModelForm):
         cleaned_data = super().clean()
         password = cleaned_data.get('password1')
         password_confirm = cleaned_data.get('password2')
+
         if password and password_confirm and password != password_confirm:
             self.add_error('password2', _('Passwords do not match.'))
+
         return cleaned_data
-    
+
     @transaction.atomic
     def save(self, commit=True):
         # We override the save method to handle the password hashing.
@@ -90,6 +96,7 @@ class UserRegistrationForm(ModelForm):
 
 
 class UserProfileForm(ModelForm):
+
     class Meta:
         model = User
         fields = ['avatar', 'phone_number', 'username']
@@ -98,10 +105,12 @@ class UserProfileForm(ModelForm):
             'phone_number': forms.TextInput(attrs={'placeholder': '+989123456789'}),
             'avatar': forms.FileInput(attrs={'accept': 'image/*'})
         }
-    
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Email changes now go through separate secure flow
+        # In the profile view, we only want to allow certain fields to be edited.
+        # Other changes, like email or password, have their own dedicated, secure forms.
+        # Here, we disable all fields except for the avatar.
         for field_name in self.fields:
             if field_name not in ['avatar']:
                 self.fields[field_name].disabled = True

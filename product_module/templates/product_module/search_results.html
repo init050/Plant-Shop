@@ -1,0 +1,134 @@
+{% extends 'base.html' %}
+{% load i18n static %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-12">
+    <div class="container mx-auto px-4">
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-800 mb-4">
+                🔍 {% trans 'Search Results' %}
+                {% if query %}
+                    {% blocktrans %}for "{{ query }}"{% endblocktrans %}
+                {% endif %}
+            </h1>
+
+            <div class="flex items-center justify-between">
+                {% if products %}
+                    <p class="text-gray-600">
+                        {% blocktrans count counter=products|length %}Found {{ counter }} result{% plural %}Found {{ counter }} results{% endblocktrans %}
+                    </p>
+                {% endif %}
+
+                <div class="flex-1 max-w-md ml-4">
+                    <form method="get" action="{% url 'product_module:search_products' %}" class="flex">
+                        <input type="text" name="q" value="{{ query }}"
+                               placeholder="{% trans 'Search products...' %}"
+                               class="flex-1 px-4 py-2 border border-gray-300 rounded-l-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                        <button type="submit" class="bg-green-600 text-white px-6 py-2 rounded-r-lg hover:bg-green-700 transition duration-200">
+                            {% trans 'Search' %}
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        {% if products %}
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {% for product in products %}
+                    <div class="bg-white rounded-xl shadow-lg hover:shadow-xl transition duration-300 overflow-hidden">
+                        <div class="relative">
+                            {% if product.image %}
+                                <img src="{{ product.image.url }}" alt="{{ product.title }}" class="w-full h-48 object-cover">
+                            {% else %}
+                                <div class="w-full h-48 bg-gray-200 flex items-center justify-center">
+                                    <span class="text-gray-400">{% trans 'No Image' %}</span>
+                                </div>
+                            {% endif %}
+
+                            {% if product.is_featured %}
+                                <span class="absolute top-2 left-2 bg-yellow-400 text-yellow-900 px-2 py-1 rounded-full text-xs font-semibold">
+                                    {% trans 'Featured' %}
+                                </span>
+                            {% endif %}
+
+                            {% if product.final_price != product.price %}
+                                <span class="absolute top-2 right-2 bg-red-500 text-white px-2 py-1 rounded-full text-xs font-semibold">
+                                    {% trans 'Sale' %}
+                                </span>
+                            {% endif %}
+                        </div>
+
+                        <div class="p-6">
+                            <h3 class="text-lg font-semibold text-gray-800 mb-2">{{ product.title }}</h3>
+                            <p class="text-gray-600 text-sm mb-4">{{ product.short_description|truncatechars:80 }}</p>
+
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="flex items-center gap-2">
+                                    <span class="text-sm text-gray-500 capitalize">{{ product.size }}</span>
+                                    <span class="w-4 h-4 rounded-full border" style="background-color: {{ product.color }};"></span>
+                                </div>
+                                <div class="text-right">
+                                    {% if product.final_price != product.price %}
+                                        <span class="text-lg font-bold text-green-600">${{ product.final_price }}</span>
+                                        <span class="text-sm text-gray-500 line-through ml-2">${{ product.price }}</span>
+                                    {% else %}
+                                        <span class="text-lg font-bold text-gray-800">${{ product.price }}</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm text-gray-500">{% trans 'Stock:' %} {{ product.stock_quantity }}</span>
+                                <a href="{{ product.get_absolute_url }}" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition duration-200">
+                                    {% trans 'View Details' %}
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="text-center py-20">
+                <div class="text-gray-400 text-8xl mb-6">🔍</div>
+                {% if query %}
+                    <h2 class="text-2xl font-semibold text-gray-600 mb-4">
+                        {% blocktrans %}No results found for "{{ query }}"{% endblocktrans %}
+                    </h2>
+                    <p class="text-gray-500 mb-8">
+                        {% trans 'Try different keywords or browse our categories' %}
+                    </p>
+                {% else %}
+                    <h2 class="text-2xl font-semibold text-gray-600 mb-4">
+                        {% trans 'Enter a search term' %}
+                    </h2>
+                    <p class="text-gray-500 mb-8">
+                        {% trans 'Search for plants, pots, or any products you are looking for' %}
+                    </p>
+                {% endif %}
+                <a href="{% url 'product_module:product_list' %}" class="bg-green-600 text-white py-3 px-8 rounded-xl hover:bg-green-700 transition duration-200 font-semibold">
+                    {% trans 'Browse All Products' %}
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+    // Auto-submit search form on input (with debounce)
+    document.addEventListener('DOMContentLoaded', function () {
+        const searchInput = document.querySelector('input[name="q"]');
+        let debounceTimeout;
+
+        if (searchInput) {
+            searchInput.addEventListener('input', function () {
+                clearTimeout(debounceTimeout);
+                debounceTimeout = setTimeout(() => {
+                    if (this.value.length > 2) {
+                        this.form.submit();
+                    }
+                }, 500);
+            });
+        }
+    });
+</script>
+{% endblock %}
