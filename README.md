@@ -27,8 +27,6 @@ This project is built with a modern, robust, and scalable technology stack.
 | **Frontend**      | Django Templates, [Tailwind CSS](https://tailwindcss.com/) 3.4                                         |
 | **Database**      | [PostgreSQL](https://www.postgresql.org/)                                                              |
 | **Real-Time**     | [Django Channels](https://channels.readthedocs.io/en/latest/) 4.2, [Redis](https://redis.io/)          |
-| **Deployment**    | Gunicorn, Nginx (recommended)                                                                          |
-| **Testing**       | [Pytest](https://pytest.org/), [Factory Boy](https://factoryboy.readthedocs.io/en/latest/)              |
 
 ---
 
@@ -88,16 +86,10 @@ All configuration is managed through a `.env` file in the root directory. See [*
 
 ---
 
-## 🧪 Testing
-
-The project includes a comprehensive test suite. To run the tests:
-```bash
-pytest
-```
-For more details on the testing strategy and coverage, see the [**Testing Guide**](./docs/TESTING.md).
-
----
-
 ## 📝 Lessons Learned & Design Decisions
 
 This project involved several key design trade-offs, such as choosing a monolithic architecture for simplicity and speed over a microservices approach. For a full discussion of what we learned and the reasoning behind our technical choices, see [**Lessons Learned**](./docs/LESSONS_LEARNED.md).
+
+---
+
+[**Docs**](.\docs\ARCHITECTURE.md\docs\CONFIGURATION.md\docs\DATABASE.md\docs\DEPLOYMENT.md\docs\LESSONS_LEARNED.md\docs\MAINTENANCE.md\docs\PROJECT_STORY.md\docs\SECURITY.md)
