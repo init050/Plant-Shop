@@ -46,6 +46,7 @@ graph TD
     B --> art
     B --> chat
     B --> home
+    
 Component Descriptions:
 
 User Browser: Renders HTML/CSS and manages interactions.
@@ -91,6 +92,7 @@ graph TD
     Nginx -->|Reverse Proxy WebSocket| Daphne
     Daphne --> Postgres
     Daphne --> RedisCache
+
 Notes:
 
 Nginx: Reverse proxy, SSL terminator, serves /static/ and /media/.
