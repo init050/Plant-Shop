@@ -29,7 +29,6 @@ graph TD
 
     A -->|HTTP/HTTPS Requests| B
     A -->|WebSocket Connection| B
-
     B -->|Reads/Writes Data| C
     B -->|Caching & WebSocket Messages| D
 
@@ -46,7 +45,7 @@ graph TD
     B --> art
     B --> chat
     B --> home
-    
+
 Component Descriptions:
 
 User Browser: Renders HTML/CSS and manages interactions.
