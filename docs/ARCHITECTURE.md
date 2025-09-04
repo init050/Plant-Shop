@@ -2,14 +2,14 @@
 
 ## 1. High-Level Architecture
 
-The Plant Shop is a **monolithic web application** built with Django. It is server-rendered, with backend handling business logic, persistence, and HTML templates styled with Tailwind CSS.  
+The Plant Shop is a **monolithic web application** built with Django. It is server-rendered, with backend handling business logic, persistence, and HTML templates styled with Tailwind CSS.
 
-Real-time chat uses **Django Channels** with an ASGI server.
+Real-time chat uses Django Channels with an ASGI server.
 
-**Core Principles:**  
-- Modularity: Separated into Django "apps" (product_module, account_module).  
-- Simplicity: Monolithic design reduces deployment complexity.  
-- Scalability: Stateless design allows horizontal scaling.
+**Core Principles:**
+- **Modularity:** Separated into Django "apps" (product_module, account_module).  
+- **Simplicity:** Monolithic design reduces deployment complexity.  
+- **Scalability:** Stateless design allows horizontal scaling.  
 
 ---
 
@@ -127,10 +127,12 @@ User Data: Entered via forms, validated, persisted to PostgreSQL.
 
 Session Data: Stored in Redis for stateless scaling.
 
-Cache Data: Expensive queries cached in Redis.
+Cache Data: Expensive queries cached in Redis for improved performance.
 
 Static Assets: Served directly by Nginx.
 
 Media Files: User uploads saved in /uploads/ and served by Nginx.
 
-Real-time Chat: Messages via WebSocket → Django Channels → Redis channel → other users; also persisted in PostgreSQL.
+Real-time Chat: Messages sent via WebSocket → Django Channels → Redis channel → other users; also persisted in PostgreSQL.
+
+
