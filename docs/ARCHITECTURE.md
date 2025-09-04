@@ -122,6 +122,7 @@ sequenceDiagram
     else Form Invalid
         DjangoApp -->> Browser: Re-render form with errors
     end
+    
 5. Data Flow Overview
 User Data: Entered via forms, validated, persisted to PostgreSQL.
 
