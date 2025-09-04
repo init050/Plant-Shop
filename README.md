@@ -4,7 +4,7 @@
 
 This project isn't just another online store. It's a platform designed from the ground up to provide a seamless and enjoyable journey for both new and experienced plant owners. It tackles the common frustrations of online plant shopping: cluttered interfaces and a lack of post-purchase support.
 
-> **Note:** The templates were created with the help of AI.
+> **Note:** The templates (HTML) were created with the help of AI.
 
 ---
 
