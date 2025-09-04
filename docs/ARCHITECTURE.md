@@ -7,9 +7,10 @@ The Plant Shop is a **monolithic web application** built with Django. It is serv
 Real-time chat uses Django Channels with an ASGI server.
 
 **Core Principles:**
-- **Modularity:** Separated into Django "apps" (product_module, account_module).  
-- **Simplicity:** Monolithic design reduces deployment complexity.  
-- **Scalability:** Stateless design allows horizontal scaling.  
+
+* **Modularity:** Separated into Django "apps" (product\_module, account\_module).
+* **Simplicity:** Monolithic design reduces deployment complexity.
+* **Scalability:** Stateless design allows horizontal scaling.
 
 ---
 
@@ -29,6 +30,7 @@ graph TD
 
     A -->|HTTP/HTTPS Requests| B
     A -->|WebSocket Connection| B
+    
     B -->|Reads/Writes Data| C
     B -->|Caching & WebSocket Messages| D
 
@@ -45,30 +47,25 @@ graph TD
     B --> art
     B --> chat
     B --> home
+```
 
-Component Descriptions:
+**Component Descriptions:**
 
-User Browser: Renders HTML/CSS and manages interactions.
+* **User Browser:** Renders HTML/CSS and manages interactions.
+* **Plant Shop Django App:** Core system containing business logic.
+* **Account Module:** User registration, login, profiles, auth.
+* **Product Module:** Product catalog, cart, orders.
+* **Article Module:** Blog posts and articles.
+* **Chat Module:** Real-time chat via Django Channels.
+* **Home Module:** Landing pages and static content.
+* **PostgreSQL:** Stores all persistent data.
+* **Redis:** Cache, session storage, message broker for WebSockets.
 
-Plant Shop Django App: Core system containing business logic.
+---
 
-Account Module: User registration, login, profiles, auth.
+## 3. Deployment Diagram
 
-Product Module: Product catalog, cart, orders.
-
-Article Module: Blog posts and articles.
-
-Chat Module: Real-time chat via Django Channels.
-
-Home Module: Landing pages and static content.
-
-PostgreSQL: Stores all persistent data.
-
-Redis: Cache, session storage, message broker for WebSockets.
-
-3. Deployment Diagram
-mermaid
-Copy code
+```mermaid
 graph TD
     subgraph Internet
         Client[User Browser]
@@ -91,20 +88,20 @@ graph TD
     Nginx -->|Reverse Proxy WebSocket| Daphne
     Daphne --> Postgres
     Daphne --> RedisCache
+```
 
-Notes:
+**Notes:**
 
-Nginx: Reverse proxy, SSL terminator, serves /static/ and /media/.
+* **Nginx:** Reverse proxy, SSL terminator, serves /static/ and /media/.
+* **Gunicorn:** Handles synchronous HTTP requests.
+* **Daphne:** Handles WebSocket connections.
+* **PostgreSQL & Redis:** Ideally separate services for high availability.
 
-Gunicorn: Handles synchronous HTTP requests.
+---
 
-Daphne: Handles WebSocket connections.
+## 4. Sequence Diagram: User Registration
 
-PostgreSQL & Redis: Ideally separate services for high availability.
-
-4. Sequence Diagram: User Registration
-mermaid
-Copy code
+```mermaid
 sequenceDiagram
     participant Browser
     participant DjangoApp as Django Application
@@ -123,17 +120,15 @@ sequenceDiagram
     else Form Invalid
         DjangoApp -->> Browser: Re-render form with errors
     end
-5. Data Flow Overview
-User Data: Entered via forms, validated, persisted to PostgreSQL.
+```
 
-Session Data: Stored in Redis for stateless scaling.
+---
 
-Cache Data: Expensive queries cached in Redis for improved performance.
+## 5. Data Flow Overview
 
-Static Assets: Served directly by Nginx.
-
-Media Files: User uploads saved in /uploads/ and served by Nginx.
-
-Real-time Chat: Messages sent via WebSocket → Django Channels → Redis channel → other users; also persisted in PostgreSQL.
-
-
+* **User Data:** Entered via forms, validated, persisted to PostgreSQL.
+* **Session Data:** Stored in Redis for stateless scaling.
+* **Cache Data:** Expensive queries cached in Redis for improved performance.
+* **Static Assets:** Served directly by Nginx.
+* **Media Files:** User uploads saved in /uploads/ and served by Nginx.
+* **Real-time Chat:** Messages sent via WebSocket → Django Channels → Redis channel → other users; also persisted in PostgreSQL.
