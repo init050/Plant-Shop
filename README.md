@@ -92,4 +92,4 @@ This project involved several key design trade-offs, such as choosing a monolith
 
 ---
 
-[**Docs**](.\docs\ARCHITECTURE.md\docs\CONFIGURATION.md\docs\DATABASE.md\docs\DEPLOYMENT.md\docs\LESSONS_LEARNED.md\docs\MAINTENANCE.md\docs\PROJECT_STORY.md\docs\SECURITY.md)
+[**Docs**](./docs/)
