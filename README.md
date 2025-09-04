@@ -1,8 +1,10 @@
 # Plant Shop: A Modern E-Commerce & Content Platform
 
-**A full-stack Django application that blends a curated e-commerce experience with rich content and community features to help plant lovers thrive.**
+**A Django application that blends a curated e-commerce experience with rich content and community features to help plant lovers thrive.**
 
 This project isn't just another online store. It's a platform designed from the ground up to provide a seamless and enjoyable journey for both new and experienced plant owners. It tackles the common frustrations of online plant shopping: cluttered interfaces and a lack of post-purchase support.
+
+> **Note:** The templates were created with the help of AI.
 
 ---
 
