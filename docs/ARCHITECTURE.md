@@ -1,17 +1,15 @@
 # Solution Architecture: Plant Shop
 
-This document provides a comprehensive overview of the technical architecture for the Plant Shop application. It is intended for developers, architects, and technical managers.
-
 ## 1. High-Level Architecture
 
-The Plant Shop is a **monolithic web application** built with the **Django framework**. It follows a server-rendered model, where the backend handles business logic, data persistence, and renders HTML templates styled with Tailwind CSS.
+The Plant Shop is a **monolithic web application** built with Django. It is server-rendered, with backend handling business logic, persistence, and HTML templates styled with Tailwind CSS.  
 
-For real-time features like chat, the application uses **Django Channels** with an **ASGI server**.
+Real-time chat uses **Django Channels** with an ASGI server.
 
-**Core Design Principles:**
-* **Modularity:** Application divided into distinct Django "apps" (e.g., product_module, account_module).
-* **Simplicity:** Monolithic architecture reduces deployment complexity.
-* **Scalability:** Stateless design allows horizontal scaling by adding more app server instances.
+**Core Principles:**  
+- Modularity: Separated into Django "apps" (product_module, account_module).  
+- Simplicity: Monolithic design reduces deployment complexity.  
+- Scalability: Stateless design allows horizontal scaling.
 
 ---
 
@@ -50,23 +48,23 @@ graph TD
     B --> home
 Component Descriptions:
 
-User Browser: Renders HTML/CSS and manages user interactions.
+User Browser: Renders HTML/CSS and manages interactions.
 
 Plant Shop Django App: Core system containing business logic.
 
-Account Module: User registration, login, profiles, authentication.
+Account Module: User registration, login, profiles, auth.
 
-Product Module: Handles product catalog, cart, orders.
+Product Module: Product catalog, cart, orders.
 
 Article Module: Blog posts and articles.
 
-Chat Module: Real-time chat using Django Channels.
+Chat Module: Real-time chat via Django Channels.
 
 Home Module: Landing pages and static content.
 
 PostgreSQL: Stores all persistent data.
 
-Redis: In-memory cache, session storage, and WebSocket message broker.
+Redis: Cache, session storage, message broker for WebSockets.
 
 3. Deployment Diagram
 mermaid
@@ -99,9 +97,9 @@ Nginx: Reverse proxy, SSL terminator, serves /static/ and /media/.
 
 Gunicorn: Handles synchronous HTTP requests.
 
-Daphne: Handles asynchronous WebSocket connections.
+Daphne: Handles WebSocket connections.
 
-PostgreSQL & Redis: Ideally run as separate services for high availability.
+PostgreSQL & Redis: Ideally separate services for high availability.
 
 4. Sequence Diagram: User Registration
 mermaid
@@ -129,11 +127,10 @@ User Data: Entered via forms, validated, persisted to PostgreSQL.
 
 Session Data: Stored in Redis for stateless scaling.
 
-Cache Data: Expensive queries cached in Redis for improved performance.
+Cache Data: Expensive queries cached in Redis.
 
 Static Assets: Served directly by Nginx.
 
 Media Files: User uploads saved in /uploads/ and served by Nginx.
 
-Real-time Chat: Messages sent via WebSocket → Django Channels → Redis channel → other users; also persisted in PostgreSQL.
-
+Real-time Chat: Messages via WebSocket → Django Channels → Redis channel → other users; also persisted in PostgreSQL.
